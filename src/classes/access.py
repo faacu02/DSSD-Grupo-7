@@ -30,7 +30,7 @@ class AccessAPI:
         session["bonita_token"] = token
         session["logged"] = True
 
-        return token
+        return token,s
     else:
         raise Exception("No se pudo conectar al servidor de Bonita")
         
