@@ -1,7 +1,7 @@
 from flask import Blueprint, Flask, session, jsonify, request
 import requests
 
-bp = Blueprint("jya", __name__)
+request_bp = Blueprint("jya", __name__)
 
 def do_request(method, uri, variable=None, data=None, type=None, assign_task=False):
     response = {}
@@ -29,6 +29,15 @@ def do_request(method, uri, variable=None, data=None, type=None, assign_task=Fal
             r = requests.put(uri, headers=headers, json=payload)
             response["success"] = True
             response["data"] = r.json()
+        
+        elif method == "GET":
+            # Si se pasa variable, la agregamos como parámetro
+            params = None
+            if variable is not None:
+                params = {"f": variable}
+            r = requests.get(uri, headers=headers, params=params)
+            response["success"] = True
+            response["data"] = r.json()
 
         else:
             response["success"] = False
@@ -40,7 +49,7 @@ def do_request(method, uri, variable=None, data=None, type=None, assign_task=Fal
 
     return response
 
-@bp.route("/<path:uri>", methods=["POST", "PUT"])
+@request_bp.route("/<path:uri>", methods=["POST", "PUT"])
 def bonita_proxy(uri):
     method = request.method
     data = request.json.get("data") if request.is_json else None
