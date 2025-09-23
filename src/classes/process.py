@@ -25,7 +25,7 @@ class Process:
         return r.json()
     
     def get_process_id_by_name(self, process_name):
-        url = f"{self.base}?f=name={name}&p=0&c=10&f=activationState=ENABLED"
+        url = f"{self.base}?f=name={process_name}&p=0&c=10&f=activationState=ENABLED"
         r = self.session.get(url)
         data = r.json()
         if data:
