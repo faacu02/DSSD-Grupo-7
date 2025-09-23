@@ -1,6 +1,17 @@
 import requests
 
 class Process:
+    def get_user_by_name(self, user_name):
+        """
+        Obtiene un usuario por su nombre de usuario.
+        GET /API/identity/user?f=userName=<user_name>
+        """
+        url = f"http://localhost:8080/bonita/API/identity/user?f=userName={user_name}"
+        r = self.session.get(url)
+        data = r.json()
+        if data:
+            return data[0]
+        return None
 
     def __init__(self):
         self.session = requests.Session()
