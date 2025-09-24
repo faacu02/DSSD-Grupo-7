@@ -21,7 +21,7 @@ def formulario_nombre():
                     flash(f'Error al crear proyecto: {data.get('error')}', 'error')
             except Exception as e:
                 flash(f'Error de conexión: {str(e)}', 'error')
-            return redirect(url_for('formulario.formulario_nombre'))
+            return redirect(url_for('cargar_etapas'))
         else:
             flash('Por favor, ingresa un nombre válido.', 'error')
     return render_template('formulario_nombre.html')
