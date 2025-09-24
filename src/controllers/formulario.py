@@ -11,7 +11,7 @@ def formulario_nombre():
         if nombre:
             try:
                 response = requests.post(
-                    url_for('bonita.completar_actividad', _external=True),
+                    url_for('bonita.iniciar_proceso', _external=True),
                     json={"nombre": nombre}
                 )
                 data = response.json()
