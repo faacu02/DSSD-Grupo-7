@@ -1,143 +1,114 @@
 import requests
 
 class Process:
+    def __init__(self, session, base_url="http://localhost:8080/bonita/"):
+        self.session = session
+        self.base_url = base_url
+        self.base_process = f"{base_url}API/bpm/process"
+        self.base_task = f"{base_url}API/bpm/userTask"
+        self.base_case_variable = f"{base_url}API/bpm/caseVariable"
+        self.base_user = f"{base_url}API/identity/user"
+        self.base_task_list = f"{base_url}API/bpm/task"
+        # Token de Bonita
+        self.token = session.cookies.get("X-Bonita-API-Token")
+
+    def _headers(self, with_json=True):
+        headers = {
+            "Accept": "application/json",
+            "X-Bonita-API-Token": self.token
+        }
+        if with_json:
+            headers["Content-Type"] = "application/json"
+        return headers
+
+    def _safe_json(self, r):
+        """Devuelve JSON si hay contenido, sino un dict simple."""
+        if r.status_code == 204 or not r.text.strip():
+            return {"status": "ok"}
+        return r.json()
+
     def get_user_by_name(self, user_name):
-        """
-        Obtiene un usuario por su nombre de usuario.
-        GET /API/identity/user?f=userName=<user_name>
-        """
-        url = f"http://localhost:8080/bonita/API/identity/user?f=userName={user_name}"
-        r = self.session.get(url)
-        data = r.json()
-        if data:
-            return data[0]
-        return None
+        url = f"{self.base_user}?f=userName={user_name}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return r.json()[0] if r.json() else None
 
-    def __init__(self):
-        self.session = requests.Session()
-        self.base = "http://localhost:8080/bonita/API/bpm/process"
-        
     def get_all_process(self):
-        """
-        Lista todos los procesos disponibles en Bonita.
-        Equivalente a GET /API/bpm/process?p=0&c=1000
-        Devuelve un array de procesos con id, name, version, etc.
-        """
-        r = self.session.get(f"{self.base}?p=0&c=1000")
+        url = f"{self.base_process}?p=0&c=1000"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return r.json()
-    
+
     def get_process_name(self, process_id):
-
-        """
-        Obtiene el nombre de un proceso a partir de su ID.
-        GET /API/bpm/process/{process_id}
-        """
-        r = self.session.get(f"{self.base}/{process_id}")
+        url = f"{self.base_process}/{process_id}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return r.json()
-    
+
     def get_process_id_by_name(self, process_name):
-        url = f"{self.base}?f=name={process_name}&p=0&c=10&f=activationState=ENABLED"
-        r = self.session.get(url)
+        url = f"{self.base_process}?f=name={process_name}&p=0&c=10&f=activationState=ENABLED"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         data = r.json()
-        if data:
-            return data[0].get("id")
-        return None
-    
+        return data[0]["id"] if data else None
+
     def get_count_process(self):
-
-        """
-        Cuenta cuántos procesos hay desplegados en Bonita.
-        Lo hace pidiendo hasta 1000 procesos y devolviendo la cantidad.
-        """
-
-        r = self.session.get(f"{self.base}?p=0&c=1000")
+        url = f"{self.base_process}?p=0&c=1000"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return len(r.json())
-    
-
 
     def initiate(self, process_id):
-        """
-        Inicia una nueva instancia de un proceso por ID.
-        POST /API/bpm/process/{process_id}/instantiation
-        Devuelve datos de la nueva instancia (caseId, etc.).
-        """
-        r = self.session.post(f"{self.base}/{process_id}/instantiation")
-        return r.json()
-    
-
+        url = f"{self.base_process}/{process_id}/instantiation"
+        r = self.session.post(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return self._safe_json(r)
 
     def set_variable_by_case(self, case_id, variable, value, tipo="java.lang.String"):
-        """
-        Cambia el valor de una variable en una instancia (case).
-        PUT /API/bpm/caseVariable/{case_id}/{variable}
-        tipo: por defecto 'java.lang.String' (también puede ser Integer, Boolean, etc.).
-        """
-        url = f"http://localhost:8080/bonita/API/bpm/caseVariable/{case_id}/{variable}"
-        r = self.session.put(url, json={"value": value, "type": tipo})
-        return r.json()
-    
-    def set_variable_from_task(self, task_id, variable, value, tipo="java.lang.String"):
-        """
-        Versión vieja: usa taskId para obtener caseId y luego setear variable.
-        1. GET /API/bpm/userTask/{taskId} -> obtener caseId
-        2. PUT /API/bpm/caseVariable/{caseId}/{variable}
-        """
-        task = self.session.get(f"http://localhost:8080/bonita/API/bpm/userTask/{task_id}").json()
-        case_id = task.get("caseId")
-        url = f"http://localhost:8080/bonita/API/bpm/caseVariable/{case_id}/{variable}"
+        url = f"{self.base_case_variable}/{case_id}/{variable}"
         payload = {"value": value, "type": tipo}
-        r = self.session.put(url, json=payload)
-        return r.json()
+        r = self.session.put(url, json=payload, headers=self._headers())
+        r.raise_for_status()
+        return self._safe_json(r)
+
+    def set_variable_from_task(self, task_id, variable, value, tipo="java.lang.String"):
+        task = self.session.get(f"{self.base_task}/{task_id}", headers=self._headers(with_json=False)).json()
+        case_id = task.get("caseId")
+        url = f"{self.base_case_variable}/{case_id}/{variable}"
+        payload = {"value": value, "type": tipo}
+        r = self.session.put(url, json=payload, headers=self._headers())
+        r.raise_for_status()
+        return self._safe_json(r)
 
     def assign_task(self, task_id, user_id):
-        """
-        Asigna una tarea de usuario a un usuario específico.
-        PUT /API/bpm/userTask/{taskId}
-        Body: { "assigned_id": userId }
-        """
         url = f"{self.base_task}/{task_id}"
-        r = self.session.put(url, json={"assigned_id": user_id})
-        return r.json()
-    
+        r = self.session.put(url, json={"assigned_id": user_id}, headers=self._headers())
+        r.raise_for_status()
+        return self._safe_json(r)
 
     def search_activity_by_case(self, case_id):
-        """
-        Busca todas las actividades (tareas) asociadas a un caso.
-        GET /API/bpm/task?f=caseId={caseId}
-        """
-        url = f"http://localhost:8080/bonita/API/bpm/task?f=caseId={case_id}"
-        r = self.session.get(url)
+        url = f"{self.base_task_list}?f=caseId={case_id}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return r.json()
 
     def complete_activity(self, task_id):
-        """
-        Completa (ejecuta) una tarea de usuario.
-        POST /API/bpm/userTask/{taskId}/execution
-        """
         url = f"{self.base_task}/{task_id}/execution"
-        r = self.session.post(url)
-        return r.json()
-    
-
+        r = self.session.post(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return self._safe_json(r)
 
     def get_variable(self, task_id, variable):
-        """
-        Obtiene el valor de una variable a partir de una tarea.
-        1. Busca la tarea para obtener caseId
-        2. Hace GET /API/bpm/caseVariable/{caseId}/{variable}
-        """
         task_url = f"{self.base_task}/{task_id}"
-        case_data = self.session.get(task_url).json()
+        case_data = self.session.get(task_url, headers=self._headers(with_json=False)).json()
         case_id = case_data.get("caseId")
         url = f"{self.base_case_variable}/{case_id}/{variable}"
-        r = self.session.get(url)
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return r.json()
-    
+
     def get_variable_by_case(self, case_id, variable):
-        """
-        Obtiene el valor de una variable directamente con caseId.
-        GET /API/bpm/caseVariable/{caseId}/{variable}
-        """
         url = f"{self.base_case_variable}/{case_id}/{variable}"
-        r = self.session.get(url)
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
         return r.json()
