@@ -16,12 +16,44 @@ def formulario_nombre():
                 )
                 data = response.json()
                 if data.get("success"):
+                    # Obtener el case_id del resultado
+                    case_id = data["result"].get("caseId") if data.get("result") else None
                     flash(f'Proyecto creado correctamente. Nombre: {nombre}', 'success')
+                    if case_id:
+                        # Redirigir a cargar_etapa y pasar el case_id por la URL
+                        return redirect(url_for('formulario.cargar_etapa', case_id=case_id))
                 else:
-                    flash(f'Error al crear proyecto: {data.get('error')}', 'error')
+                    flash(f'Error al crear proyecto: {data.get("error")}', 'error')
             except Exception as e:
                 flash(f'Error de conexión: {str(e)}', 'error')
             return redirect(url_for('formulario.formulario_nombre'))
         else:
             flash('Por favor, ingresa un nombre válido.', 'error')
-    return render_template('formulario_nombre.html')
+    # Obtener case_id de la URL si existe y pasarlo al template
+    case_id = request.args.get('case_id')
+    return render_template('formulario_nombre.html', case_id=case_id)
+
+@formulario_bp.route('/cargar_etapa', methods=['GET', 'POST'])
+def cargar_etapa():
+    if request.method == 'POST':
+        case_id = request.form.get('case_id')
+        nombre_etapa = request.form.get('nombre_etapa')
+        if case_id and nombre_etapa:
+            try:
+                response = requests.post(
+                    url_for('bonita_siguiente.completar_actividad_siguiente', _external=True),
+                    json={"case_id": case_id, "nombre": nombre_etapa}
+                )
+                data = response.json()
+                if data.get("success"):
+                    flash(f'Etapa cargada correctamente para el caso {case_id}', 'success')
+                else:
+                    flash(f'Error al cargar etapa: {data.get("error")}', 'error')
+            except Exception as e:
+                flash(f'Error de conexión: {str(e)}', 'error')
+            return redirect(url_for('formulario.cargar_etapa', case_id=case_id))
+        else:
+            flash('Por favor, completa todos los campos.', 'error')
+    # Obtener case_id de la URL si existe y pasarlo al template
+    case_id = request.args.get('case_id')
+    return render_template('cargar_etapa.html', case_id=case_id)
