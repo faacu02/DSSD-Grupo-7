@@ -18,7 +18,7 @@ def completar_actividad_siguiente():
         # 2. Instanciar Process con la sesión autenticada
         process = Process(session)
 
-        # 3. (Opcional) Setear variables si corresponde
+        # 3. (Opcional) Setear variables fecha, cobertura, etc. por ahora nombre
         if nombre:
             set_var_resp = process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
             print(f"set_variable_by_case response: {set_var_resp}")
