@@ -29,24 +29,8 @@ def completar_actividad():
         set_var_resp = process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
         print(f"set_variable_by_case response: {set_var_resp}")
 
-        # 6. Buscar actividad
-        activities = process.search_activity_by_case(case_id)
-        print(f"search_activity_by_case response: {activities}")
-        task_id = activities[0].get("id")
-
-        # 7. Buscar usuario genérico
-        user = process.get_user_by_name("walter.bates")
-        print(f"get_user_by_name response: {user}")
-
-        # 8. Asignar tarea
-        assign_resp = process.assign_task(task_id, user["id"])
-        print(f"assign_task response: {assign_resp}")
-
-        # 9. Completar actividad
-        result = process.complete_activity(task_id)
-        print(f"complete_activity response: {result}")
-
-        return jsonify({"success": True, "result": result})
+        # Solo devolver el case_id, no buscar ni completar tareas
+        return jsonify({"success": True, "result": {"caseId": case_id}})
 
     except Exception as e:
         import traceback
