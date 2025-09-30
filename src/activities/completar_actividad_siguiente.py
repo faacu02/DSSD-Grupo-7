@@ -38,15 +38,23 @@ def cargar_etapa():
         # 2. Instanciar Process con la sesión autenticada
         process = Process(session)
 
-        process.set_variable_by_case(case_id, "nombre_etapa", nombre_etapa, "java.lang.String")
-        process.set_variable_by_case(case_id, "proyecto_id", int(proyecto_id), "java.lang.Integer")
-        print("fecha_inicio:", fecha_inicio, "->", fecha_inicio_ts)
-        print("fecha_fin:", fecha_fin, "->", fecha_fin_ts)
-        #process.set_variable_by_case(case_id, "fecha_inicio", fecha_inicio_ts, "java.lang.Long")
-        #process.set_variable_by_case(case_id, "fecha_fin", fecha_fin_ts, "java.lang.Long")
-        process.set_variable_by_case(case_id, "tipo_cobertura", tipo_cobertura, "java.lang.String")
-        process.set_variable_by_case(case_id, "cobertura_solicitada", cobertura_solicitada, "java.lang.String")
-        #process.set_variable_by_case(case_id, "cobertura_actual", cobertura_actual,    "java.lang.String")
+        etapa_data = {
+            "nombre": nombre_etapa,
+            "fecha_inicio": fecha_inicio_ts,
+            "fecha_fin": fecha_fin_ts,
+            "tipo_cobertura": tipo_cobertura,
+            "cobertura_solicitada": cobertura_solicitada,
+            "proyecto_id": int(proyecto_id)
+        }
+
+        url = "http://localhost:8080/bonita/API/bdm/businessData/Etapa"
+        headers = {
+            "X-Bonita-API-Token": session.cookies.get("X-Bonita-API-Token")
+        }
+        resp = session.post(url, json=etapa_data, headers=headers)
+        resp.raise_for_status()
+        nueva_etapa = resp.json()
+        print(f"Etapa creada en BDM: {nueva_etapa}")
 
 
         # 4. Buscar actividad pendiente en el case

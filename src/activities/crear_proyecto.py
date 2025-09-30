@@ -8,7 +8,7 @@ bonita_bp = Blueprint("bonita", __name__, url_prefix="/bonita")
 def completar_actividad():
     access = AccessAPI()
     nombre = request.json.get("nombre")
-    cantidad_etapas = request.json.get("cantidad_etapas")
+   
 
     try:
         # 1. Login
