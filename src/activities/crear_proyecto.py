@@ -28,7 +28,6 @@ def completar_actividad():
 
         # 5. Setear variables
         process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
-        process.set_variable_by_case(case_id, "cantidad_etapas", cantidad_etapas, "java.lang.Integer")
 
         # Solo devolver el case_id, no buscar ni completar tareas
         return jsonify({"success": True, "result": {"caseId": case_id}})
