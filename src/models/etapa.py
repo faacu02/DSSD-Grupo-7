@@ -9,4 +9,4 @@ class Etapa(db.Model):
     tipo_cobertura = db.Column(db.String(50), nullable=False) 
     proyecto_id = db.Column(db.Integer, db.ForeignKey('proyecto.id'), nullable=False)
     cobertura_solicitada = db.Column(db.String, nullable=False)
-    cobertura_actual = db.Column(db.String, nullable=False)
+    cobertura_actual = db.Column(db.String, nullable=True)
