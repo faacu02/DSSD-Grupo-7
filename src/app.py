@@ -3,9 +3,19 @@ from controllers.formulario import formulario_bp
 from activities.crear_proyecto import bonita_bp
 from activities.completar_actividad_siguiente import bonita_bp_siguiente
 from classes.request import request_bp
+from db import db  # <--- Importa db desde db.py
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Necesario para los mensajes flash
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:admin@localhost:5432/dssd'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db.init_app(app)
+
+with app.app_context():
+    db.create_all()
 
 # Registrar el Blueprint
 app.register_blueprint(formulario_bp)

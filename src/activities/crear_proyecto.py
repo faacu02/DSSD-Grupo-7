@@ -8,6 +8,7 @@ bonita_bp = Blueprint("bonita", __name__, url_prefix="/bonita")
 def completar_actividad():
     access = AccessAPI()
     nombre = request.json.get("nombre")
+    cantidad_etapas = request.json.get("cantidad_etapas")
 
     try:
         # 1. Login
@@ -26,8 +27,8 @@ def completar_actividad():
         case_id = instance.get("caseId")
 
         # 5. Setear variables
-        set_var_resp = process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
-        print(f"set_variable_by_case response: {set_var_resp}")
+        process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
+        process.set_variable_by_case(case_id, "cantidad_etapas", cantidad_etapas, "java.lang.Integer")
 
         # Solo devolver el case_id, no buscar ni completar tareas
         return jsonify({"success": True, "result": {"caseId": case_id}})
