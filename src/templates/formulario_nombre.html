@@ -27,7 +27,10 @@
             <form method="POST" action="{{ url_for('formulario.formulario_nombre') }}">
                 <div class="mb-3">
                     <label for="nombre" class="form-label">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" required placeholder="Ingresa tu nombre">
+                    <input type="text" class="form-control" id="nombre" name="nombre" required placeholder="Ingresa el nombre del proyecto a crear">
+                    <label for="Cantidad de etapas" class="form-label">Cantidad de etapas</label>
+                    <input type="number" class="form-control" id="cantidad_etapas" name="cantidad_etapas" required placeholder="Ingresa la cantidad de etapas">
+
                 </div>
                 <div class="d-grid">
                     <button type="submit" class="btn btn-primary">Enviar</button>
