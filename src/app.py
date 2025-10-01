@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from controllers.formulario import formulario_bp
 from activities.crear_proyecto import bonita_bp
 from activities.completar_actividad_siguiente import bonita_bp_siguiente
@@ -25,7 +25,7 @@ app.register_blueprint(request_bp)
 
 @app.route('/')
 def home():
-    return '¡Hola, Flask está funcionando!'
+    return render_template('bienvenido.html')
 
 
 if __name__ == '__main__':

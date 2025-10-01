@@ -8,29 +8,60 @@ bonita_bp = Blueprint("bonita", __name__, url_prefix="/bonita")
 def completar_actividad():
     access = AccessAPI()
     nombre = request.json.get("nombre")
-   
 
     try:
-        # 1. Login
         cookie, session = access.login()
-
-        # 2. Instanciar Process con la sesión autenticada
         process = Process(session)
 
-        # 3. Obtener ID del proceso
         process_id = process.get_process_id_by_name("Proceso de generar proyecto")
-        print(f"process_id response: {process_id}")
-
-        # 4. Iniciar instancia
         instance = process.initiate(process_id)
-        print(f"instance response: {instance}")
         case_id = instance.get("caseId")
+        activities = process.list_activities_by_case(case_id)
 
-        # 5. Setear variables
+        print(f"Tareas pendientes en el case {case_id}:")
+        for a in activities:
+            print(f"- TaskId={a['id']} | Name={a['name']} | State={a['state']} | Assigned={a['assigned_id']}")
+
         process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
 
-        # Solo devolver el case_id, no buscar ni completar tareas
-        return jsonify({"success": True, "result": {"caseId": case_id}})
+        activities = process.search_activity_by_case(case_id)
+
+        if not activities:
+            return jsonify({"success": False, "error": "No hay tareas pendientes"})
+        task_id = activities[0]["id"]
+
+        
+        user = process.get_user_by_name("walter.bates")
+
+        assign_resp = process.assign_task(task_id, user["id"])
+        print("assign_resp parsed:", assign_resp)
+
+        task = session.get(f"http://localhost:8080/bonita/API/bpm/userTask/{task_id}",
+                    headers=process._headers(with_json=False)).json()
+        print("task after assign:", task)
+       
+       
+
+        result = process.complete_activity(task_id)
+        print("complete_activity parsed:", result)
+
+        state = process.check_task_state(task_id)
+        print("state after complete:", state)
+
+        activities = process.list_activities_by_case(case_id)
+
+        print(f"Tareas pendientes en el case {case_id}:")
+        for a in activities:
+            print(f"- TaskId={a['id']} | Name={a['name']} | State={a['state']} | Assigned={a['assigned_id']}")
+
+        return jsonify({
+            "success": True,
+            "result": {
+                "caseId": case_id,
+                "taskId": task_id,
+                "complete": result
+            }
+        })
 
     except Exception as e:
         import traceback
