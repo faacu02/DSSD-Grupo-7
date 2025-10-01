@@ -45,7 +45,7 @@
         </div>
         <div class="form-check mb-3">
             <input type="checkbox" class="form-check-input" id="ultima_etapa" name="ultima_etapa" value="true" onchange="toggleInputs()">
-            <label class="form-check-label" for="ultima_etapa">Deseo dejar de cargar etapas y confirmar el proyecto</label>
+            <label class="form-check-label" for="ultima_etapa">Ultima etapa</label>
         </div>
         <button type="submit" class="btn btn-primary" id="btn-cargar">Cargar Etapa</button>
         <button type="button" class="btn btn-success d-none" id="btn-confirmar" onclick="mostrarConfirmacion()">Confirmar Proyecto</button>
@@ -53,24 +53,40 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+let ultimaEtapaMarcada = false;
 function toggleInputs() {
     const checked = document.getElementById('ultima_etapa').checked;
+    ultimaEtapaMarcada = checked;
     const inputs = document.querySelectorAll('#nombre_etapa, #fecha_inicio, #fecha_fin, #tipo_cobertura, #cobertura_solicitada');
     const btnCargar = document.getElementById('btn-cargar');
     const btnConfirmar = document.getElementById('btn-confirmar');
     inputs.forEach(input => {
-        input.disabled = checked;
+        input.disabled = false;
     });
-    btnCargar.disabled = checked;
-    btnConfirmar.classList.toggle('d-none', !checked);
+    btnCargar.disabled = false;
+    btnConfirmar.classList.add('d-none');
 }
+
+// Al enviar el formulario, si es la última etapa, mostrar botón de confirmar
+const form = document.querySelector('form');
+form.addEventListener('submit', function(e) {
+    if (ultimaEtapaMarcada) {
+        // Permitir el envío normal del formulario para la última etapa
+        // El botón de confirmar aparecerá después de la respuesta del backend
+        setTimeout(function() {
+            document.getElementById('btn-confirmar').classList.remove('d-none');
+            document.querySelectorAll('#nombre_etapa, #fecha_inicio, #fecha_fin, #tipo_cobertura, #cobertura_solicitada').forEach(input => input.disabled = true);
+            document.getElementById('btn-cargar').disabled = true;
+        }, 100);
+    }
+});
+
 function mostrarConfirmacion() {
     if (confirm('¿Está seguro que desea confirmar las etapas?')) {
         confirmarProyecto();
     }
 }
 function confirmarProyecto() {
-    // Obtener los datos necesarios
     const case_id = document.querySelector('input[name="case_id"]').value;
     fetch('/bonita/confirmar_proyecto', {
         method: 'POST',
