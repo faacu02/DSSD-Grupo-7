@@ -3,36 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <title>Cargar Etapa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    <h1>Cargar Etapa</h1>
+<div class="container mt-5">
+    <h1 class="mb-4">Cargar Etapa</h1>
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-        <ul>
+        <div class="mb-3">
           {% for category, message in messages %}
-            <li style="color: {% if category == 'success' %}green{% else %}red{% endif %};">{{ message }}</li>
+            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
           {% endfor %}
-        </ul>
+        </div>
       {% endif %}
     {% endwith %}
-    <form method="POST">
+    <form method="POST" class="border rounded p-4 bg-light">
         <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
         <input type="hidden" name="case_id" value="{{ case_id }}">
-        <label for="nombre_etapa">Nombre de la etapa:</label>
-        <input type="text" id="nombre_etapa" name="nombre_etapa" required><br>
-        <label for="fecha_inicio">Fecha de inicio:</label>
-        <input type="date" id="fecha_inicio" name="fecha_inicio" required><br>
-        <label for="fecha_fin">Fecha de fin:</label>
-        <input type="date" id="fecha_fin" name="fecha_fin" required><br>
-        <label for="tipo_cobertura">Tipo de cobertura:</label>
-        <input type="text" id="tipo_cobertura" name="tipo_cobertura" required><br>
-        <label for="cobertura_solicitada">Cobertura solicitada:</label>
-        <input type="text" id="cobertura_solicitada" name="cobertura_solicitada" required><br>
-        <label>
-            <input type="checkbox" name="ultima_etapa" value="true">
-            Deseo dejar de cargar etapas y confirmar el proyecto
-        </label><br>
-        <button type="submit">Cargar Etapa</button>
+        <div class="mb-3">
+            <label for="nombre_etapa" class="form-label">Nombre de la etapa:</label>
+            <input type="text" class="form-control" id="nombre_etapa" name="nombre_etapa" required>
+        </div>
+        <div class="mb-3">
+            <label for="fecha_inicio" class="form-label">Fecha de inicio:</label>
+            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+        </div>
+        <div class="mb-3">
+            <label for="fecha_fin" class="form-label">Fecha de fin:</label>
+            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+        </div>
+        <div class="mb-3">
+            <label for="tipo_cobertura" class="form-label">Tipo de cobertura:</label>
+            <input type="text" class="form-control" id="tipo_cobertura" name="tipo_cobertura" required>
+        </div>
+        <div class="mb-3">
+            <label for="cobertura_solicitada" class="form-label">Cobertura solicitada:</label>
+            <input type="text" class="form-control" id="cobertura_solicitada" name="cobertura_solicitada" required>
+        </div>
+        <div class="form-check mb-3">
+            <input type="checkbox" class="form-check-input" id="ultima_etapa" name="ultima_etapa" value="true">
+            <label class="form-check-label" for="ultima_etapa">Deseo dejar de cargar etapas y confirmar el proyecto</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Cargar Etapa</button>
     </form>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
