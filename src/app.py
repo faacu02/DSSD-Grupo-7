@@ -27,6 +27,10 @@ app.register_blueprint(request_bp)
 def home():
     return render_template('bienvenido.html')
 
+@app.route('/enviando_notificaciones')
+def enviando_notificaciones():
+    return render_template('enviando_notificaciones.html')
+
 
 if __name__ == '__main__':
     app.run(debug=True)
