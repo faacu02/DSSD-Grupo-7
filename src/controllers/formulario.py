@@ -55,6 +55,8 @@ def cargar_etapa():
         fecha_fin = request.form.get('fecha_fin')
         tipo_cobertura = request.form.get('tipo_cobertura')
         cobertura_solicitada = request.form.get('cobertura_solicitada')
+
+        # ✅ convertir checkbox a boolean real
         ultima_etapa = request.form.get('ultima_etapa')
 
         if proyecto_id and nombre_etapa and fecha_inicio and fecha_fin and tipo_cobertura and cobertura_solicitada:
@@ -67,7 +69,8 @@ def cargar_etapa():
                     cobertura_solicitada,
                     int(proyecto_id)
                 )
-                # Enviar datos de la etapa a Bonita
+
+                # Enviar datos a Bonita (incluyendo ultima_etapa como bool real)
                 response = requests.post(
                     url_for('bonita_siguiente.cargar_etapa', _external=True),
                     json={
@@ -77,7 +80,8 @@ def cargar_etapa():
                         "fecha_inicio": fecha_inicio,
                         "fecha_fin": fecha_fin,
                         "tipo_cobertura": tipo_cobertura,
-                        "cobertura_solicitada": cobertura_solicitada
+                        "cobertura_solicitada": cobertura_solicitada,
+                        "ultima_etapa": ultima_etapa
                     }
                 )
                 data = response.json()
@@ -85,28 +89,49 @@ def cargar_etapa():
                     flash(f'Etapa cargada correctamente para el caso {case_id}', 'success')
                 else:
                     flash(f'Error al cargar etapa: {data.get("error")}', 'error')
+
             except Exception as e:
                 flash(f'Error de conexión: {str(e)}', 'error')
-            # Si el usuario marcó "ultima_etapa", setear variable en Bonita y redirigir a confirmar
-            if ultima_etapa:
-                try:
-                    # Setear variable ultima_etapa en Bonita a True
-                    requests.post(
-                        url_for('bonita_siguiente.confirmar_proyecto', _external=True),
-                        json={
-                            "case_id": case_id,
-                            "ultima_etapa": True
-                        }
-                    )
-                    flash('Proyecto confirmado. Se dejó de cargar etapas.', 'success')
-                    # Aquí puedes redirigir a la tarea de confirmación si tienes una ruta específica
-                    # return redirect(url_for('formulario.confirmar', case_id=case_id, proyecto_id=proyecto_id))
-                except Exception as e:
-                    flash(f'Error al confirmar proyecto: {str(e)}', 'error')
-            return redirect(url_for('formulario.cargar_etapa', case_id=case_id, proyecto_id=proyecto_id))
+
+            # ✅ Solo redirigir a confirmar si realmente es la última etapa
+            if ultima_etapa == 'true':
+                return redirect(url_for('formulario.confirmar_proyecto',
+                                        case_id=case_id,
+                                        proyecto_id=proyecto_id))
+
+            # ✅ Si no es última, volver al mismo formulario para seguir cargando
+            return redirect(url_for('formulario.cargar_etapa',
+                                    case_id=case_id,
+                                    proyecto_id=proyecto_id))
         else:
             flash('Por favor, completa todos los campos.', 'error')
-    # Obtener case_id y proyecto_id de la URL si existen y pasarlos al template
+
+    # GET → renderizar formulario vacío o con case_id/proyecto_id
     case_id = request.args.get('case_id')
     proyecto_id = request.args.get('proyecto_id')
-    return render_template('cargar_etapa.html', case_id=case_id, proyecto_id=proyecto_id)
+    return render_template('cargar_etapa.html',
+                           case_id=case_id,
+                           proyecto_id=proyecto_id)
+
+@formulario_bp.route('/confirmar_proyecto', methods=['GET', 'POST'])
+def confirmar_proyecto():
+    case_id = request.args.get('case_id')
+    proyecto_id = request.args.get('proyecto_id')
+    if request.method == 'POST':
+        try:
+            response = requests.post(
+                url_for('bonita_siguiente.confirmar_proyecto', _external=True),
+                json={"case_id": case_id, "ultima_etapa": True}
+            )
+            data = response.json()
+            if data.get("success"):
+                flash('Proyecto confirmado correctamente.', 'success')
+                return redirect(url_for('formulario.formulario_nombre'))
+            else:
+                flash(f'Error al confirmar: {data.get("error")}', 'error')
+        except Exception as e:
+            flash(f'Error de conexión: {str(e)}', 'error')
+
+    return render_template('confirmar_proyecto.html',
+                           case_id=case_id,
+                           proyecto_id=proyecto_id)
