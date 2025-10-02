@@ -87,7 +87,27 @@ def confirmar_proyecto():
         process = Process(session)
 
         # 2. Setear la variable ultima_etapa en el case
+        
+        
+        activities = process.search_activity_by_case(case_id)
+        print(f"search_activity_by_case response: {activities}")
+        if not activities:
+            return jsonify({"success": False, "error": "No se encontraron actividades para el case."})
+        task_id = activities[0].get("id")
+
+        # 5. Buscar usuario genérico
+        user = process.get_user_by_name("walter.bates")
+        print(f"get_user_by_name response: {user}")
+
+        # 6. Asignar tarea
+        assign_resp = process.assign_task(task_id, user["id"])
+        print(f"assign_task response: {assign_resp}")
+        
         process.set_variable_by_case(case_id, "ultima_etapa", bool(ultima_etapa), "java.lang.Boolean")
+
+        # 7. Completar actividad
+        result = process.complete_activity(task_id)
+        print(f"complete_activity response: {result}")
 
         return jsonify({"success": True})
     except Exception as e:

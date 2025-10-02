@@ -82,9 +82,33 @@ class Process:
 
     def assign_task(self, task_id, user_id):
         url = f"{self.base_task}/{task_id}"
-        r = self.session.put(url, json={"assigned_id": user_id}, headers=self._headers())
-        r.raise_for_status()
+        payload = {"assigned_id": str(user_id)}  # forzar string
+
+        print("\n[DEBUG] Assign task")
+        print("  URL:", url)
+        print("  Payload:", payload)
+        print("  Headers:", self._headers())
+
+        r = self.session.put(url, json=payload, headers=self._headers())
+
+        print("  Status:", r.status_code)
+        print("  Response text:", r.text)
+
+        try:
+            r.raise_for_status()
+        except Exception as e:
+            print("  ERROR in assign_task:", e)
+            raise
+
         return self._safe_json(r)
+
+
+
+    def get_actors_by_process(self, process_id):
+        url = f"{self.base_url}API/bpm/actor?f=process_id={process_id}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return r.json()
 
     def search_activity_by_case(self, case_id):
         url = f"{self.base_task_list}?f=caseId={case_id}"
@@ -92,11 +116,28 @@ class Process:
         r.raise_for_status()
         return r.json()
 
-    def complete_activity(self, task_id):
+    def complete_activity(self, task_id, contract=None):
+       
         url = f"{self.base_task}/{task_id}/execution"
-        r = self.session.post(url, headers=self._headers(with_json=False))
+        payload = {"contract": contract} if contract else {}
+
+        print("\n[DEBUG] Complete activity")
+        print("  URL:", url)
+        print("  Payload:", payload)
+        print("  Headers:", self._headers())
+
+        r = self.session.post(url, json=payload, headers=self._headers())
+
+        print("  Status:", r.status_code)
+        print("  Response text:", r.text)
+
+        # Manejo de 204 (sin contenido)
+        if r.status_code == 204 or not r.text.strip():
+            return {"status": "completed"}
+
         r.raise_for_status()
         return self._safe_json(r)
+
 
     def get_variable(self, task_id, variable):
         task_url = f"{self.base_task}/{task_id}"
@@ -109,6 +150,37 @@ class Process:
 
     def get_variable_by_case(self, case_id, variable):
         url = f"{self.base_case_variable}/{case_id}/{variable}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return r.json()
+
+    def get_actor_members(self, actor_id):
+        """
+        Devuelve los miembros (usuarios, grupos, roles) asociados a un actor.
+        actor_id: id del actor (string o int).
+        """
+        url = f"{self.base_url}API/bpm/actorMember?f=actor_id={actor_id}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        r.raise_for_status()
+        return r.json()
+
+
+    def check_task_state(self, task_id):
+        url = f"{self.base_task}/{task_id}"
+        r = self.session.get(url, headers=self._headers(with_json=False))
+        if r.status_code == 404:
+            return {"state": "not_found"}
+        if r.status_code == 204 or not r.text.strip():
+            return {"state": "completed"}
+        data = r.json()
+        return {"state": data.get("state", "unknown")}
+    
+    
+    def list_activities_by_case(self, case_id):
+        """
+        Devuelve todas las actividades pendientes de un case.
+        """
+        url = f"{self.base_task_list}?f=caseId={case_id}&c=50"
         r = self.session.get(url, headers=self._headers(with_json=False))
         r.raise_for_status()
         return r.json()

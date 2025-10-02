@@ -7,6 +7,11 @@ from datetime import datetime
 # Crear el Blueprint
 formulario_bp = Blueprint('formulario', __name__)
 
+@formulario_bp.route('/')
+def index():
+    """Página de inicio de ProjectPlanning"""
+    return render_template('index.html')
+
 
 def to_timestamp(fecha_str):
     if not fecha_str:
