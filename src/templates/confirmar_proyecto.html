@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmar Proyecto</title>
+</head>
+<body>
+    <h1>Confirmación del Proyecto</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+          {% for category, message in messages %}
+            <li style="color: {% if category == 'success' %}green{% else %}red{% endif %};">
+              {{ message }}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <p>¿Desea confirmar este proyecto como finalizado?</p>
+
+    <!-- Form que dispara la confirmación -->
+    <form method="POST" 
+          action="{{ url_for('formulario.confirmar_proyecto', case_id=case_id, proyecto_id=proyecto_id) }}">
+        <input type="hidden" name="case_id" value="{{ case_id }}">
+        <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
+        <button type="submit">✅ Confirmar Proyecto</button>
+    </form>
+</body>
+</html>
