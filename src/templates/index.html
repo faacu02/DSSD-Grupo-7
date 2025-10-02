@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProjectPlanning - Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .logo-text {
+            font-size: 4rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .btn-hero {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+        .btn-hero:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <div class="text-center text-lg-start">
+                        <h1 class="logo-text mb-4">
+                            <i class="fas fa-project-diagram me-3"></i>
+                            ProjectPlanning
+                        </h1>
+                        <p class="subtitle mb-5">
+                            Gestiona y planifica tus proyectos de manera eficiente. 
+                            Organiza etapas, recursos y coberturas en un solo lugar.
+                        </p>
+                        <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                            <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-light btn-hero">
+                                <i class="fas fa-rocket me-2"></i>
+                                Crear Nuevo Proyecto
+                            </a>
+                            <button class="btn btn-outline-light btn-hero" data-bs-toggle="modal" data-bs-target="#infoModal">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Más Información
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="text-center">
+                        <i class="fas fa-tasks" style="font-size: 15rem; opacity: 0.1;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-12">
+                    <h2 class="display-6 fw-bold text-primary mb-3">
+                        <i class="fas fa-star me-2"></i>Características Principales
+                    </h2>
+                    <p class="lead text-muted">Herramientas diseñadas para optimizar la gestión de tus proyectos</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-clipboard-list text-primary" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Gestión de Etapas</h5>
+                            <p class="card-text text-muted">
+                                Organiza tu proyecto en etapas claras con fechas específicas y tipos de cobertura definidos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-chart-line text-success" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Seguimiento de Recursos</h5>
+                            <p class="card-text text-muted">
+                                Controla las coberturas solicitadas y mantén un registro detallado de los recursos necesarios.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card h-100 border-0 shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <div class="mb-3">
+                                <i class="fas fa-users text-warning" style="font-size: 3rem;"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Colaboración Eficiente</h5>
+                            <p class="card-text text-muted">
+                                Facilita la comunicación y coordinación entre todos los miembros del equipo del proyecto.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container text-center">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h3 class="display-6 fw-bold mb-3">
+                        <i class="fas fa-lightbulb me-2"></i>¿Listo para comenzar?
+                    </h3>
+                    <p class="lead mb-4">
+                        Inicia tu primer proyecto ahora y experimenta una nueva forma de gestionar tus ideas.
+                    </p>
+                    <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-light btn-hero">
+                        <i class="fas fa-play me-2"></i>
+                        Empezar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal de Información -->
+    <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="infoModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>Sobre ProjectPlanning
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">
+                                <i class="fas fa-question-circle me-1"></i>¿Qué es ProjectPlanning?
+                            </h6>
+                            <p class="text-muted">
+                                Es una plataforma integral para la gestión de proyectos que te permite organizar, 
+                                planificar y hacer seguimiento de todas las etapas de tus proyectos de manera eficiente.
+                            </p>
+                            
+                            <h6 class="fw-bold text-primary mt-3">
+                                <i class="fas fa-cogs me-1"></i>¿Cómo funciona?
+                            </h6>
+                            <ul class="text-muted">
+                                <li>Crea tu proyecto con un nombre descriptivo</li>
+                                <li>Define las etapas con fechas y recursos</li>
+                                <li>Especifica las coberturas necesarias</li>
+                                <li>Confirma y gestiona tu proyecto</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold text-primary">
+                                <i class="fas fa-users me-1"></i>¿Para quién es?
+                            </h6>
+                            <p class="text-muted">
+                                Ideal para organizaciones, ONGs, empresas y equipos que necesitan 
+                                una herramienta simple pero poderosa para gestionar sus proyectos.
+                            </p>
+                            
+                            <h6 class="fw-bold text-primary mt-3">
+                                <i class="fas fa-heart me-1"></i>Beneficios
+                            </h6>
+                            <ul class="text-muted">
+                                <li>Interfaz intuitiva y fácil de usar</li>
+                                <li>Gestión clara de recursos y tiempos</li>
+                                <li>Seguimiento detallado del progreso</li>
+                                <li>Optimización de la planificación</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cerrar
+                    </button>
+                    <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-primary">
+                        <i class="fas fa-rocket me-1"></i>Crear Proyecto
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animación suave al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const heroSection = document.querySelector('.hero-section');
+            heroSection.style.opacity = '0';
+            heroSection.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                heroSection.style.transition = 'all 0.8s ease';
+                heroSection.style.opacity = '1';
+                heroSection.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Efecto parallax suave en el scroll
+        window.addEventListener('scroll', function() {
+            const scrolled = window.pageYOffset;
+            const hero = document.querySelector('.hero-section');
+            hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+        });
+    </script>
+</body>
+</html>
