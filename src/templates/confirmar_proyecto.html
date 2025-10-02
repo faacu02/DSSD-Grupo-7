@@ -2,31 +2,137 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Confirmar Proyecto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Confirmación del Proyecto</h1>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white text-center">
+                        <h1 class="card-title mb-0">
+                            <i class="fas fa-check-circle me-2"></i>Confirmación del Proyecto
+                        </h1>
+                    </div>
+                    <div class="card-body">
+                        <!-- Mostrar mensajes flash -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                        {% endwith %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <ul>
-          {% for category, message in messages %}
-            <li style="color: {% if category == 'success' %}green{% else %}red{% endif %};">
-              {{ message }}
-            </li>
-          {% endfor %}
-        </ul>
-      {% endif %}
-    {% endwith %}
+                        <!-- Mensaje de confirmación -->
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-question-circle text-primary" style="font-size: 4rem;"></i>
+                            </div>
+                            <h4 class="text-dark mb-3">¿Estás seguro?</h4>
+                            <p class="text-muted fs-5">
+                                Una vez confirmado, el proyecto será marcado como finalizado y no podrás agregar más etapas.
+                            </p>
+                        </div>
 
-    <p>¿Desea confirmar este proyecto como finalizado?</p>
+                        <!-- Información del proyecto -->
+                        <div class="bg-light rounded p-3 mb-4">
+                            <h6 class="text-primary mb-2">
+                                <i class="fas fa-info-circle me-1"></i>Información del Proyecto
+                            </h6>
+                            <div class="row">
+                                <div class="col-6">
+                                    <small class="text-muted">ID del Proyecto:</small>
+                                    <p class="mb-1 fw-bold">{{ proyecto_id }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted">ID del Caso:</small>
+                                    <p class="mb-1 fw-bold">{{ case_id }}</p>
+                                </div>
+                            </div>
+                        </div>
 
-    <!-- Form que dispara la confirmación -->
-    <form method="POST" 
-          action="{{ url_for('formulario.confirmar_proyecto', case_id=case_id, proyecto_id=proyecto_id) }}">
-        <input type="hidden" name="case_id" value="{{ case_id }}">
-        <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
-        <button type="submit">✅ Confirmar Proyecto</button>
-    </form>
+                        <!-- Formulario de confirmación -->
+                        <form method="POST" 
+                              action="{{ url_for('formulario.confirmar_proyecto', case_id=case_id, proyecto_id=proyecto_id) }}"
+                              onsubmit="return confirmarEnvio()">
+                            <input type="hidden" name="case_id" value="{{ case_id }}">
+                            <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check me-2"></i>
+                                    ✅ Confirmar Proyecto
+                                </button>
+                                <a href="{{ url_for('formulario.cargar_etapa', case_id=case_id, proyecto_id=proyecto_id) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>
+                                    Volver a Cargar Etapas
+                                </a>
+                                <a href="{{ url_for('formulario.index') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-home me-2"></i>
+                                    Ir al Inicio
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Card de información adicional -->
+                <div class="card mt-4 border-info">
+                    <div class="card-body">
+                        <h6 class="card-title text-info">
+                            <i class="fas fa-lightbulb me-1"></i>¿Qué sucede al confirmar?
+                        </h6>
+                        <ul class="card-text text-muted mb-0">
+                            <li>El proyecto será marcado como finalizado</li>
+                            <li>No se podrán agregar más etapas</li>
+                            <li>Se completará el proceso de planificación</li>
+                            <li>Recibirás una confirmación del sistema</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmarEnvio() {
+            return confirm('¿Estás seguro de que deseas confirmar este proyecto? Esta acción no se puede deshacer.');
+        }
+
+        // Animación suave al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            const card = document.querySelector('.card');
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        });
+
+        // Efecto hover en el botón principal
+        const btnConfirmar = document.querySelector('.btn-success');
+        btnConfirmar.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 6px 20px rgba(40, 167, 69, 0.3)';
+        });
+        
+        btnConfirmar.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    </script>
 </body>
 </html>
