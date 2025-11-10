@@ -67,14 +67,13 @@ class AccessAPI:
                 #    print(f"Error obteniendo actores del usuario: {e}")
                  #   user_actors = []
                     
-            print(f"Usuario ID: {user_id}, Grupos: {user_groups}, Roles: {user_roles}, Organizaciones: {user_actors}")
+            print(f"Usuario ID: {user_id}, Grupos: {user_groups}, Roles: {user_roles}")
 
             # Guardar en sesión de Flask todas las cookies y datos del usuario
             flask_session["bonita_user"] = self.user
             flask_session["bonita_user_id"] = user_id
             flask_session["bonita_user_groups"] = user_groups
             flask_session["bonita_user_roles"] = user_roles
-            flask_session["bonita_user_actors"] = user_actors
             flask_session["bonita_password"] = self.password
             flask_session["bonita_base_url"] = self.base_url
             flask_session["bonita_token"] = token
