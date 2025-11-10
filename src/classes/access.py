@@ -5,8 +5,8 @@ class AccessAPI:
     def __init__(self, base_url="http://localhost:8080/bonita/"):
         self.base_url = base_url
         self.login_url = f"{base_url}loginservice"
-        self.user = "walter.bates"
-        self.password = "bpm"
+        self.user = ""
+        self.password = ""
 
     def login(self):
         s = requests.Session()
@@ -35,8 +35,46 @@ class AccessAPI:
             if not token:
                 raise Exception("Login exitoso pero no se obtuvo token")
 
-            # Guardar en sesión de Flask todas las cookies necesarias
+            # Obtener información del usuario desde Bonita
+            from classes.process import Process
+            process = Process(s, self.base_url)
+            user_info = process.get_user_by_name(self.user)
+            
+            user_id = None
+            user_groups = []
+            user_roles = []
+            user_actors = []
+            if user_info:
+                user_id = user_info.get("id")
+                # Obtener los grupos del usuario
+                try:
+                    user_groups = process.get_user_groups_display_names(user_id)
+                except Exception as e:
+                    print(f"Error obteniendo grupos del usuario: {e}")
+                    user_groups = []
+                
+                # Obtener los roles del usuario
+                try:
+                    user_roles = process.get_user_roles_names(user_id)
+                except Exception as e:
+                    print(f"Error obteniendo roles del usuario: {e}")
+                    user_roles = []
+                
+                # Obtener los actores/organizaciones del usuario
+              #  try:
+               #     user_actors = process.get_user_actors_names(user_id)
+               # except Exception as e:
+                #    print(f"Error obteniendo actores del usuario: {e}")
+                 #   user_actors = []
+                    
+            print(f"Usuario ID: {user_id}, Grupos: {user_groups}, Roles: {user_roles}, Organizaciones: {user_actors}")
+
+            # Guardar en sesión de Flask todas las cookies y datos del usuario
             flask_session["bonita_user"] = self.user
+            flask_session["bonita_user_id"] = user_id
+            flask_session["bonita_user_groups"] = user_groups
+            flask_session["bonita_user_roles"] = user_roles
+            flask_session["bonita_user_actors"] = user_actors
             flask_session["bonita_password"] = self.password
             flask_session["bonita_base_url"] = self.base_url
             flask_session["bonita_token"] = token
