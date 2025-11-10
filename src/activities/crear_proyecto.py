@@ -6,11 +6,11 @@ bonita_bp = Blueprint("bonita", __name__, url_prefix="/bonita")
 
 @bonita_bp.route("/completar_actividad", methods=["POST"])
 def completar_actividad():
-    access = AccessAPI()
     nombre = request.json.get("nombre")
 
     try:
-        cookie, session = access.login()
+        # Usar la sesión existente en lugar de hacer login nuevamente
+        session = AccessAPI.get_bonita_session()
         process = Process(session)
 
         process_id = process.get_process_id_by_name("Proceso de generar proyecto")

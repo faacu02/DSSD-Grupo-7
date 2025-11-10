@@ -29,16 +29,39 @@ class AccessAPI:
 
         if resp.status_code in [200, 204]:
             token = s.cookies.get("X-Bonita-API-Token")
+            jsessionid = s.cookies.get("JSESSIONID")
+            bonita_csrf_token = s.cookies.get("bonita.csrf.token")
+            
             if not token:
                 raise Exception("Login exitoso pero no se obtuvo token")
 
-            # opcional: guardar en sesión de Flask
+            # Guardar en sesión de Flask todas las cookies necesarias
             flask_session["bonita_user"] = self.user
             flask_session["bonita_password"] = self.password
             flask_session["bonita_base_url"] = self.base_url
             flask_session["bonita_token"] = token
+            flask_session["bonita_jsessionid"] = jsessionid
+            flask_session["bonita_csrf_token"] = bonita_csrf_token
             flask_session["logged"] = True
 
             return token, s
         else:
             raise Exception(f"Error login Bonita: {resp.status_code} {resp.text}")
+
+    @staticmethod
+    def get_bonita_session():
+        """Reconstruye la sesión de Bonita desde Flask session sin hacer login nuevamente"""
+        if not flask_session.get("logged") or not flask_session.get("bonita_token"):
+            raise Exception("No hay sesión activa de Bonita. Por favor, inicia sesión.")
+        
+        # Crear una nueva sesión de requests
+        s = requests.Session()
+        
+        # Restaurar las cookies guardadas
+        s.cookies.set("X-Bonita-API-Token", flask_session.get("bonita_token"))
+        if flask_session.get("bonita_jsessionid"):
+            s.cookies.set("JSESSIONID", flask_session.get("bonita_jsessionid"))
+        if flask_session.get("bonita_csrf_token"):
+            s.cookies.set("bonita.csrf.token", flask_session.get("bonita_csrf_token"))
+        
+        return s
