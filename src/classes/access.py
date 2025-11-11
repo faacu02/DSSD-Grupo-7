@@ -5,8 +5,8 @@ class AccessAPI:
     def __init__(self, base_url="http://localhost:8080/bonita/"):
         self.base_url = base_url
         self.login_url = f"{base_url}loginservice"
-        self.user = ""
-        self.password = ""
+        self.user = "walter.bates"
+        self.password = "bpm"
 
     def login(self):
         s = requests.Session()
@@ -85,20 +85,4 @@ class AccessAPI:
         else:
             raise Exception(f"Error login Bonita: {resp.status_code} {resp.text}")
 
-    @staticmethod
-    def get_bonita_session():
-        """Reconstruye la sesión de Bonita desde Flask session sin hacer login nuevamente"""
-        if not flask_session.get("logged") or not flask_session.get("bonita_token"):
-            raise Exception("No hay sesión activa de Bonita. Por favor, inicia sesión.")
-        
-        # Crear una nueva sesión de requests
-        s = requests.Session()
-        
-        # Restaurar las cookies guardadas
-        s.cookies.set("X-Bonita-API-Token", flask_session.get("bonita_token"))
-        if flask_session.get("bonita_jsessionid"):
-            s.cookies.set("JSESSIONID", flask_session.get("bonita_jsessionid"))
-        if flask_session.get("bonita_csrf_token"):
-            s.cookies.set("bonita.csrf.token", flask_session.get("bonita_csrf_token"))
-        
-        return s
+    

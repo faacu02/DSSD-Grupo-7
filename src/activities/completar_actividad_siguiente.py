@@ -24,10 +24,11 @@ def cargar_etapa():
     tipo_cobertura = request.json.get("tipo_cobertura")
     cobertura_solicitada = request.json.get("cobertura_solicitada")
     ultima_etapa = request.json.get("ultima_etapa", False)   # ✅ llega como bool
+    access = AccessAPI()
 
     try:
         # Usar la sesión existente en lugar de hacer login nuevamente
-        session = AccessAPI.get_bonita_session()
+        cookie, session = access.login()
         process = Process(session)
 
         # ✅ Setear variables
@@ -61,10 +62,10 @@ def cargar_etapa():
 def confirmar_proyecto():
     case_id = request.json.get("case_id")
     ultima_etapa = request.json.get("ultima_etapa", False)
-
+    access = AccessAPI()
     try:
         # Usar la sesión existente en lugar de hacer login nuevamente
-        session = AccessAPI.get_bonita_session()
+        cookie, session = access.login()
         process = Process(session)
 
         # 2. Setear la variable ultima_etapa en el case
