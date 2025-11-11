@@ -16,7 +16,6 @@ def to_timestamp(fecha_str):
     return int(dt.timestamp() * 1000)
 @bonita_bp_siguiente.route("/cargar_etapa", methods=["POST"])
 def cargar_etapa():
-    access = AccessAPI()
     case_id = request.json.get("case_id")
     nombre_etapa = request.json.get("nombre_etapa")
     proyecto_id = request.json.get("proyecto_id")
@@ -25,8 +24,10 @@ def cargar_etapa():
     tipo_cobertura = request.json.get("tipo_cobertura")
     cobertura_solicitada = request.json.get("cobertura_solicitada")
     ultima_etapa = request.json.get("ultima_etapa", False)   # ✅ llega como bool
+    access = AccessAPI()
 
     try:
+        # Usar la sesión existente en lugar de hacer login nuevamente
         cookie, session = access.login()
         process = Process(session)
 
@@ -59,12 +60,11 @@ def cargar_etapa():
 
 @bonita_bp_siguiente.route("/confirmar_proyecto", methods=["POST"])
 def confirmar_proyecto():
-    access = AccessAPI()
     case_id = request.json.get("case_id")
     ultima_etapa = request.json.get("ultima_etapa", False)
-
+    access = AccessAPI()
     try:
-        # 1. Login
+        # Usar la sesión existente en lugar de hacer login nuevamente
         cookie, session = access.login()
         process = Process(session)
 

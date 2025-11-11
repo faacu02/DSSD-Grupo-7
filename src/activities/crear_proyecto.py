@@ -6,10 +6,11 @@ bonita_bp = Blueprint("bonita", __name__, url_prefix="/bonita")
 
 @bonita_bp.route("/completar_actividad", methods=["POST"])
 def completar_actividad():
-    access = AccessAPI()
     nombre = request.json.get("nombre")
+    access = AccessAPI()
 
     try:
+        # Usar la sesión existente en lugar de hacer login nuevamente
         cookie, session = access.login()
         process = Process(session)
 
@@ -51,8 +52,8 @@ def completar_actividad():
         activities = process.list_activities_by_case(case_id)
 
         print(f"Tareas pendientes en el case {case_id}:")
-        for a in activities:
-            print(f"- TaskId={a['id']} | Name={a['name']} | State={a['state']} | Assigned={a['assigned_id']}")
+        #for a in activities:
+        #    print(f"- TaskId={a['id']} | Name={a['name']} | State={a['state']} | Assigned={a['assigned_id']}")
 
         return jsonify({
             "success": True,
