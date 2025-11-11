@@ -4,20 +4,12 @@ import services.proyecto_servicce as proyecto_service
 import services.etapa_service as etapa_service
 from datetime import datetime
 from classes.access import AccessAPI
-from functools import wraps
+from utils.login_required import login_required
 
 # Crear el Blueprint
 formulario_bp = Blueprint('formulario', __name__)
 
-# Decorator para verificar autenticación
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not session.get('logged'):
-            flash('Por favor, inicia sesión para acceder.', 'error')
-            return redirect(url_for('formulario.login'))
-        return f(*args, **kwargs)
-    return decorated_function
+
 
 @formulario_bp.route('/')
 def root():
