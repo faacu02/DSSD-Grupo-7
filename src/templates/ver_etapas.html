@@ -26,7 +26,7 @@
 						</a>
 					</li>
 					<li class="nav-item">
-						<a class="nav-link text-danger" href="{{ url_for('formulario.logout') }}">
+						<a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
 							<i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
 						</a>
 					</li>
@@ -74,7 +74,7 @@
 												<td class="text-end">
 													<!-- Asumo que existe una vista para detalle de etapa en el blueprint 'etapa'.
 														 Si el nombre de la ruta es distinto, actualizar el url_for correspondiente. -->
-													<a href="{{ url_for('etapa.detalle_etapa', etapa_id=etapa.id) }}" class="btn btn-sm btn-outline-primary me-2">
+													<a href="{{ url_for('etapa.detalle_etapa', etapa_id=etapa.id, case_id=case_id) }}" class="btn btn-sm btn-outline-primary me-2">
 														<i class="fas fa-eye me-1"></i>Ver detalle
 													</a>
 												</td>
