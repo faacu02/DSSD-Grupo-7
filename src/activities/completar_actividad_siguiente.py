@@ -30,6 +30,21 @@ def to_timestamp(fecha_str):
     dt = datetime.strptime(fecha_str, "%Y-%m-%d")
     return int(dt.timestamp() * 1000)
 
+def completar_tarea_por_nombre(process, case_id, nombre_tarea):
+    """Busca, asigna y completa una tarea en Bonita por su nombre"""
+    activities = process.search_activity_by_case(case_id)
+    task_id = None
+    for act in activities:
+        if act.get("name") == nombre_tarea:
+            task_id = act.get("id")
+            break
+
+    if not task_id:
+        raise Exception(f"No se encontró la tarea '{nombre_tarea}' para el case {case_id}")
+
+    user = process.get_user_by_name("walter.bates")
+    process.assign_task(task_id, user["id"])
+    return process.complete_activity(task_id)
 
 @bonita_bp_siguiente.route("/cargar_etapa", methods=["POST"])
 def cargar_etapa():
@@ -78,16 +93,8 @@ def cargar_etapa():
         if ultima_etapa == 'true':
             process.set_variable_by_case(case_id, "ultima_etapa", "true", "java.lang.Boolean")
 
-        # Buscar actividad pendiente
-        activities = process.search_activity_by_case(case_id)
-        if not activities:
-            return jsonify({"success": False, "error": "No se encontraron actividades para el case."})
-        task_id = activities[0].get("id")
-
         # Asignar y completar
-        user = process.get_user_by_name("walter.bates")
-        process.assign_task(task_id, user["id"])
-        result = process.complete_activity(task_id)
+        result = completar_tarea_por_nombre(process, case_id, "Cargar etapa")
 
         return jsonify({"success": True, "result": result})
     except Exception as e:
@@ -109,30 +116,58 @@ def confirmar_proyecto():
         process.set_variable_by_case(case_id, "ultima_etapa", valor, "java.lang.Boolean")
 
         
-        activities = process.search_activity_by_case(case_id)
-        task_id = None
-        for act in activities:
-            if act.get("name") == "Confirmar etapas":  # usa el nombre exacto en Bonita
-                task_id = act.get("id")
-                break
+        result = completar_tarea_por_nombre(process, case_id, "Confirmar etapas")
 
-        if not task_id:
-            return jsonify({"success": False, "error": "No se encontró la tarea Confirmar etapas"})
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
 
-        # 5. Buscar usuario genérico
-        user = process.get_user_by_name("walter.bates")
-        print(f"get_user_by_name response: {user}")
+@bonita_bp_siguiente.route("/completar_etapa/<int:etapa_id>", methods=["POST"])
+def completar_etapa(etapa_id):
+    case_id = request.json.get("case_id")
+    access = AccessAPI()
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
 
-        # 6. Asignar tarea
-        assign_resp = process.assign_task(task_id, user["id"])
-        print(f"assign_task response: {assign_resp}")
-        
+        result = completar_tarea_por_nombre(process, case_id, "Completar etapa")
 
-        # 7. Completar actividad
-        result = process.complete_activity(task_id)
-        print(f"complete_activity response: {result}")
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
 
-        return jsonify({"success": True})
+@bonita_bp_siguiente.route("/completar_ver_proyectos", methods=["POST"])
+def completar_ver_proyectos():
+    case_id = request.json.get("case_id")
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        # Usa el helper para completar la tarea
+        result = completar_tarea_por_nombre(process, case_id, "Ver proyectos")
+
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+@bonita_bp_siguiente.route("/completar_seleccionar_proyecto", methods=["POST"])
+def completar_seleccionar_proyecto():
+    case_id = request.json.get("case_id")
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        # Usa el helper para completar la tarea
+        result = completar_tarea_por_nombre(process, case_id, "Seleccionar proyecto")
+
+        return jsonify({"success": True, "result": result})
     except Exception as e:
         import traceback
         print(traceback.format_exc())

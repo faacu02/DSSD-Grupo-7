@@ -74,7 +74,8 @@ def confirmar_proyecto():
             data = response.json()
             if data.get("success"):
                 flash('Proyecto confirmado correctamente.', 'success')
-                return redirect(url_for('formulario.formulario_nombre'))
+                # 🔹 Redirigir a la lista de proyectos, pasando el case_id
+                return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
             else:
                 flash(f'Error al confirmar: {data.get("error")}', 'error')
         except Exception as e:
@@ -85,3 +86,10 @@ def confirmar_proyecto():
                            proyecto_id=proyecto_id)
 
 
+@formulario_bp.route('/proyectos', methods=['GET'])
+def ver_proyectos():
+    case_id = request.args.get('case_id')
+
+    proyectos = proyecto_service.obtener_proyectos()
+
+    return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
