@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import requests
+from models import etapa
 import services.etapa_service as etapa_service
 
 
@@ -15,22 +16,10 @@ def cargar_etapa():
         fecha_fin = request.form.get('fecha_fin')
         tipo_cobertura = request.form.get('tipo_cobertura')
         cobertura_solicitada = request.form.get('cobertura_solicitada')
-
-        # ✅ convertir checkbox a boolean real
         ultima_etapa = request.form.get('ultima_etapa')
 
         if proyecto_id and nombre_etapa and fecha_inicio and fecha_fin and tipo_cobertura and cobertura_solicitada:
             try:
-                etapa_service.crear_etapa(
-                    nombre_etapa,
-                    fecha_inicio,
-                    fecha_fin,
-                    tipo_cobertura,
-                    cobertura_solicitada,
-                    int(proyecto_id)
-                )
-
-                # Enviar datos a Bonita (incluyendo ultima_etapa como bool real)
                 response = requests.post(
                     url_for('bonita_siguiente.cargar_etapa', _external=True),
                     json={
@@ -45,10 +34,18 @@ def cargar_etapa():
                     }
                 )
                 data = response.json()
-                if data.get("success"):
-                    flash(f'Etapa cargada correctamente para el caso {case_id}', 'success')
-                else:
-                    flash(f'Error al cargar etapa: {data.get("error")}', 'error')
+
+                etapa_cloud_id = data.get("etapa_cloud_id")
+
+                etapa_service.crear_etapa(
+                    nombre_etapa,
+                    fecha_inicio,
+                    fecha_fin,
+                    tipo_cobertura,
+                    cobertura_solicitada,
+                    int(proyecto_id),
+                    etapa_cloud_id
+                )
 
             except Exception as e:
                 flash(f'Error de conexión: {str(e)}', 'error')
@@ -58,20 +55,17 @@ def cargar_etapa():
                                         case_id=case_id,
                                         proyecto_id=proyecto_id))
 
-            # ✅ Si no es última, volver al mismo formulario para seguir cargando
             return redirect(url_for('etapa.cargar_etapa',
                                     case_id=case_id,
                                     proyecto_id=proyecto_id))
-        else:
-            flash('Por favor, completa todos los campos.', 'error')
 
-    # GET → renderizar formulario vacío o con case_id/proyecto_id
     case_id = request.args.get('case_id')
     proyecto_id = request.args.get('proyecto_id')
-    
+
     return render_template('cargar_etapa.html',
                            case_id=case_id,
                            proyecto_id=proyecto_id)
+
 
 @etapa_bp.route('/ver_etapas/<int:proyecto_id>', methods=['GET'])
 def ver_etapas_proyecto(proyecto_id):
@@ -102,6 +96,7 @@ def ver_etapas_proyecto(proyecto_id):
 def detalle_etapa(etapa_id):
     case_id = request.args.get('case_id')
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    etapa_cloud_id = etapa.etapa_cloud_id
 
     if not etapa:
         flash('Etapa no encontrada.', 'error')
@@ -127,7 +122,7 @@ def detalle_etapa(etapa_id):
         print("⚠️ No se recibió case_id, no se completó tarea en Bonita.")
 
     # 🔹 Renderiza el detalle
-    return render_template('detalle_etapa.html', etapa=etapa, case_id=case_id)
+    return render_template('detalle_etapa.html', etapa=etapa, case_id=case_id, etapa_cloud_id=etapa_cloud_id)
 
 
 @etapa_bp.route('/completar/<int:etapa_id>', methods=['GET', 'POST'])

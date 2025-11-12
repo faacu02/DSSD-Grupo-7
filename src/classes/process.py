@@ -1,3 +1,4 @@
+from wsgiref import headers
 import requests
 
 class Process:
@@ -153,11 +154,23 @@ class Process:
         r.raise_for_status()
         return r.json()
 
-    def get_variable_by_case(self, case_id, variable):
-        url = f"{self.base_case_variable}/{case_id}/{variable}"
-        r = self.session.get(url, headers=self._headers(with_json=False))
+    
+    def get_case_variable(self, case_id, varname):
+        url = f"{self.base_case_variable}/{case_id}/{varname}"
+
+        headers = {
+            "Accept": "application/json",
+            "X-Bonita-API-Token": self.token
+        }
+
+        r = self.session.get(url, headers=headers)
+
+        if r.status_code == 404:
+            return None  # variable aún no creada
+
         r.raise_for_status()
-        return r.json()
+        return r.json().get("value")
+
 
     def get_actor_members(self, actor_id):
         """
@@ -398,3 +411,22 @@ class Process:
         r = self.session.get(url, headers=self._headers(with_json=False))
         r.raise_for_status()
         return r.json()
+
+    def wait_for_case_variable(self, case_id, varname, timeout=10, interval=0.3):
+        """
+        Espera hasta que una variable de case exista y NO sea null.
+        """
+        import time
+        start = time.time()
+
+        while time.time() - start < timeout:
+            value = self.get_case_variable(case_id, varname)
+            print(f"[DEBUG] polling {varname}:", value)
+
+            if value not in (None, "null", ""):
+                return value
+
+            time.sleep(interval)
+
+        print(f"[WARN] timeout esperando {varname} en case {case_id}")
+        return None

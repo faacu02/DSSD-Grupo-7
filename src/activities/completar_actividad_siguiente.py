@@ -2,27 +2,10 @@ from multiprocessing import process
 from flask import Blueprint, json, request, jsonify
 from classes.process import Process
 from classes.access import AccessAPI
-from datetime import datetime
+from datetime import datetime, time
 import json
-
+import time
 bonita_bp_siguiente = Blueprint("bonita_siguiente", __name__, url_prefix="/bonita")
-
-
-
-def to_timestamp(fecha_str):
-    if not fecha_str:
-        return None
-    dt = datetime.strptime(fecha_str, "%Y-%m-%d")
-    return int(dt.timestamp() * 1000)
-
-from flask import Blueprint, request, jsonify
-from classes.process import Process
-from classes.access import AccessAPI
-from datetime import datetime
-import json
-
-bonita_bp_siguiente = Blueprint("bonita_siguiente", __name__, url_prefix="/bonita")
-
 
 def to_timestamp(fecha_str):
     if not fecha_str:
@@ -95,8 +78,15 @@ def cargar_etapa():
 
         # Asignar y completar
         result = completar_tarea_por_nombre(process, case_id, "Cargar etapa")
+        etapa_cloud_id = process.wait_for_case_variable(case_id, "etapa_cloud_id")
+        print("[DEBUG] etapa_cloud_id recuperado:", etapa_cloud_id)
 
-        return jsonify({"success": True, "result": result})
+        return jsonify({
+            "success": True,
+            "result": result,
+            "etapa_cloud_id": etapa_cloud_id
+        })
+
     except Exception as e:
         import traceback
         print(traceback.format_exc())
@@ -188,15 +178,14 @@ def completar_seleccionar_etapa():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
     
-    
 @bonita_bp_siguiente.route("/cargar_donacion", methods=["POST"])
 def cargar_donacion():
     case_id = request.json.get("case_id")
     etapa_id = request.json.get("etapa_id")
     donante_nombre = request.json.get("donante_nombre")
     monto = request.json.get("monto")
-    especificacion = request.json.get("especificacion")
-
+    especificacion = request.json.get("especificacion")   # YA ES UN DICT
+    
     try:
         # Convertir monto a float si existe
         monto_float = float(monto) if monto else None
@@ -204,26 +193,43 @@ def cargar_donacion():
         session = AccessAPI.get_bonita_session()
         process = Process(session)
 
-        # Preparar datos de la donación
+        # ----------------------------------------------------------------------------
+        # YA NO HAY NORMALIZACIÓN — VIENE TODO PERFECTO DEL FRONT
+        # Si especificacion es string (no debería pasar), igual lo intento parsear
+        # ----------------------------------------------------------------------------
+        if isinstance(especificacion, str):
+            try:
+                especificacion = json.loads(especificacion)
+            except:
+                especificacion = {"detalle": especificacion}
+
+        # Si no es dict (caso rarísimo), lo convierto en detalle
+        if not isinstance(especificacion, dict):
+            especificacion = {"detalle": str(especificacion)}
+
+        # ----------------------------------------------------------------------------
+        # Armar JSON tal como lo espera el conector del cloud
+        # ----------------------------------------------------------------------------
         donacion_data = {
-            'etapa_id': etapa_id,
-            'monto': monto_float if monto_float is not None else None,
-            'especificacion': especificacion if especificacion else None,
-            'donante_nombre': donante_nombre if donante_nombre else None,
+            "etapa_id": etapa_id,
+            "monto": monto_float,
+            "especificacion": especificacion,
+            "donante_nombre": donante_nombre,
         }
 
-        # 💾 Convertir a string JSON limpio
+        # Transformar a JSON (String) para Bonita
         donacion_json_str = json.dumps(donacion_data, ensure_ascii=False)
         print(f"[DEBUG] Donación data enviada a Bonita:\n{donacion_json_str}")
 
-        # ✅ Setear variable donacion_data (que el conector usa como payload)
+        # Guardar variable en Bonita
         process.set_variable_by_case(case_id, "donacion_data", donacion_json_str, "java.lang.String")
         print("[DEBUG] Variable donacion_data guardada correctamente en Bonita")
 
-        # Asignar y completar
+        # Completar tarea de Bonita
         result = completar_tarea_por_nombre(process, case_id, "Proponer donación")
 
         return jsonify({"success": True, "result": result})
+
     except Exception as e:
         import traceback
         print(traceback.format_exc())

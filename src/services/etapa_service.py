@@ -7,10 +7,12 @@ def crear_etapa(nombre_etapa,
                     fecha_fin,
                     tipo_cobertura,
                     cobertura_solicitada,
-                    proyecto_id):
+                    proyecto_id,
+                    etapa_cloud_id):
     nuevo = Etapa(nombre=nombre_etapa, fecha_inicio=fecha_inicio, fecha_fin=fecha_fin,
                   tipo_cobertura=tipo_cobertura, cobertura_solicitada=cobertura_solicitada,
-                  proyecto_id=proyecto_id)
+                  proyecto_id=proyecto_id,
+                  etapa_cloud_id=etapa_cloud_id)
     db.session.add(nuevo)
     db.session.commit()
     return nuevo

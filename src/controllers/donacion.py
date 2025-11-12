@@ -2,14 +2,27 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import requests
 from classes.access import AccessAPI
 import time
+import json
+
+from controllers import etapa
+from services import etapa_service
 
 donacion_bp = Blueprint('donacion', __name__)
 @donacion_bp.route('/cargar_donacion', methods=['GET', 'POST'])
 def cargar_donacion():
+    case_id = request.args.get('case_id')
+    etapa_id = request.args.get('etapa_id')
+    etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    etapa_cloud_id = etapa.etapa_cloud_id if etapa else None
     if request.method == 'POST':
-        case_id = request.args.get('case_id')
-        print(f"🔍 case_id recibido en cargar_donacion: {case_id}")
-        etapa_id = request.args.get('etapa_id')
+
+        # -----------------------------------------
+        #   1. Obtener parámetros desde GET
+        # -----------------------------------------
+
+        # -----------------------------------------
+        #   2. Completar tarea "Seleccionar etapa" en Bonita
+        # -----------------------------------------
         if case_id:
             try:
                 response = requests.post(
@@ -17,61 +30,82 @@ def cargar_donacion():
                     json={"case_id": case_id}
                 )
                 data = response.json()
+
                 if not data.get("success"):
-                    print(f"⚠️ Bonita devolvió error al completar 'Seleccionar etapa': {data.get('error')}")
+                    print(f"⚠️ Error Bonita al completar 'Seleccionar etapa': {data.get('error')}")
                 else:
                     print(f"✅ Tarea 'Seleccionar etapa' completada para case {case_id}")
+
             except Exception as e:
-                print(f"⚠️ Error de conexión al completar 'Seleccionar etapa': {e}")
+                print(f"⚠️ Error comunicando con Bonita: {e}")
         else:
-            print("⚠️ No se recibió case_id, no se completó tarea en Bonita.")
+            print("⚠️ No llegó case_id por GET, no se completó tarea en Bonita.")
+
+        # -----------------------------------------
+        #   3. Recibir datos del formulario
+        # -----------------------------------------
         donante_nombre = request.form.get('donante_nombre')
         monto = request.form.get('monto')
-        especificacion = request.form.get('especificacion')
 
+        # ES LA CLAVE → VIENE COMO JSON STRING DEL FRONT
+        especificacion_raw = request.form.get('especificacion')
+
+        # -----------------------------------------
+        #   4. Parsear especificación
+        # -----------------------------------------
         try:
-            # Convertir monto a float si existe
-            monto_float = float(monto) if monto else None
-            
-            # Preparar datos de la donación
-            donacion_data = {
-                'etapa_id': etapa_id,
-                'monto': monto_float if monto_float is not None else None,
-                'especificacion': especificacion if especificacion else None,
-                'donante_nombre': donante_nombre if donante_nombre else None,
-                'case_id': case_id  
-            }
-            for i in range(10):  # máximo 10 intentos (10 segundos)
-                check = requests.get(
-                    f"http://localhost:8080/bonita/API/bpm/activity?f=caseId={case_id}&f=name=Proponer%20donación"
-                )
-                if check.status_code == 200:
-                    actividades = check.json()
-                    if actividades and actividades[0].get("state") in ["ready", "executing"]:
-                        print(f"✅ Tarea 'Proponer donación' ya está disponible (estado: {actividades[0]['state']})")
-                        break
-                print(f"⌛ Esperando que 'Proponer donación' se cree... ({i+1}/10)")
-                time.sleep(1)
-            else:
-                print("⚠️ La tarea 'Proponer donación' nunca estuvo lista, se intentará de todos modos.")
+            especificacion = json.loads(especificacion_raw) if especificacion_raw else None
+        except json.JSONDecodeError:
+            especificacion = {"detalle": especificacion_raw}
 
-            # Ahora sí, ejecutar el endpoint que la completa
+        # -----------------------------------------
+        #   5. Convertir monto correctamente
+        # -----------------------------------------
+        try:
+            monto_float = float(monto) if monto else None
+        except ValueError:
+            flash("El monto debe ser un número válido.", "error")
+            return redirect(request.url)
+
+        # -----------------------------------------
+        #   6. Armar JSON limpio para Bonita
+        # -----------------------------------------
+        donacion_data = {
+            "case_id": case_id,
+            "etapa_id": etapa_cloud_id,
+            "monto": monto_float,
+            "especificacion": especificacion,
+            "donante_nombre": donante_nombre
+        }
+
+        print(f"📤 JSON enviado a Bonita:\n{donacion_data}")
+
+        # -----------------------------------------
+        #   7. Llamar endpoint interno /bonita/cargar_donacion
+        # -----------------------------------------
+        try:
             response = requests.post(
                 url_for('bonita_siguiente.cargar_donacion', _external=True),
                 json=donacion_data
             )
 
-           
             data = response.json()
+
             if not data.get("success"):
                 flash(f"Error al cargar donación en Bonita: {data.get('error')}", 'error')
             else:
                 flash('Donación cargada correctamente.', 'success')
                 return redirect(url_for('formulario.index'))
-            
-        except ValueError:
-            flash('El monto debe ser un número válido.', 'error')
+
         except Exception as e:
             flash(f'Error al cargar donación: {str(e)}', 'error')
 
-    return render_template('cargar_donacion.html')
+    # -----------------------------------------
+    #  GET → Renderizar formulario con params
+    # -----------------------------------------
+    case_id = request.args.get('case_id')
+    etapa_id = request.args.get('etapa_id')
+
+    return render_template('cargar_donacion.html',
+                           case_id=case_id,
+                           etapa_id=etapa_id, etapa_cloud_id=etapa_cloud_id)

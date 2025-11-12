@@ -7,105 +7,115 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h1 class="card-title mb-0">
-                            <i class="fas fa-hand-holding-heart me-2"></i>Cargar Donación
-                        </h1>
-                    </div>
-                    <div class="card-body">
-                        <!-- Mostrar mensajes flash -->
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} alert-dismissible fade show" role="alert">
-                                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' }} me-2"></i>
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% endwith %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h1 class="card-title mb-0">
+                        <i class="fas fa-hand-holding-heart me-2"></i>Cargar Nueva Donación
+                    </h1>
+                </div>
 
-                        <form method="POST" class="needs-validation" novalidate>
-                            <div class="mb-3">
-                                <label for="donante_nombre" class="form-label">
-                                    <i class="fas fa-user me-1"></i>Nombre del Donante
-                                </label>
-                                <input type="text" class="form-control" id="donante_nombre" name="donante_nombre" 
-                                       placeholder="Ej: Juan Pérez" maxlength="200">
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Opcional. Ingresa el nombre completo del donante.
+                <div class="card-body">
+
+                    <form method="POST" class="needs-validation" novalidate>
+
+                        <input type="hidden" name="etapa_id" value="{{ etapa_id }}">
+                        <input type="hidden" name="case_id" value="{{ case_id }}">
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-user me-1"></i>Donante</label>
+                            <input type="text" class="form-control" name="donante_nombre" required>
+                            <div class="invalid-feedback">Ingrese el nombre del donante.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-dollar-sign me-1"></i>Monto</label>
+                            <input type="number" step="0.01" class="form-control" name="monto" required>
+                            <div class="invalid-feedback">Ingrese un monto válido.</div>
+                        </div>
+
+                        <!-- Detalle estructura JSON -->
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>Detalle de la donación
+                            </label>
+
+                            <input type="text" id="detalle" class="form-control mb-2" placeholder="Descripción general (opcional)">
+
+                            <label class="form-label mt-2"><i class="fas fa-list me-1"></i>Items</label>
+
+                            <div id="items-container">
+                                <div class="input-group mb-2 item-row">
+                                    <input type="text" class="form-control item-input" placeholder="Ej: cemento" required>
+                                    <button type="button" class="btn btn-outline-danger remove-item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="monto" class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Monto
-                                </label>
-                                <input type="number" class="form-control" id="monto" name="monto" 
-                                       step="0.01" min="0" placeholder="Ej: 1000.00">
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Opcional. Ingresa el monto de la donación.
-                                </div>
-                            </div>
+                            <button type="button" class="btn btn-outline-success btn-sm mb-2" id="add-item">
+                                <i class="fas fa-plus"></i> Agregar item
+                            </button>
 
-                            <div class="mb-4">
-                                <label for="especificacion" class="form-label">
-                                    <i class="fas fa-list-ul me-1"></i>Especificación
-                                </label>
-                                <textarea class="form-control" id="especificacion" name="especificacion" 
-                                          rows="4" placeholder='Ej: {"tipo": "efectivo", "destino": "construcción"}'></textarea>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Opcional. Ingresa detalles adicionales de la donación en formato JSON o texto libre.
-                                </div>
-                            </div>
+                            <input type="hidden" name="especificacion" id="especificacion_json">
+                        </div>
 
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-save me-2"></i>Guardar Donación
-                                </button>
-                                <a href="{{ url_for('formulario.index') }}" class="btn btn-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i>Volver
-                                </a>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <div class="card-footer text-muted text-center">
-                        <small>
-                            <i class="fas fa-lightbulb me-1"></i>
-                            Todos los campos son opcionales. Completa solo la información disponible.
-                        </small>
-                    </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Donación
+                            </button>
+                            <a href="#" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                        </div>
+
+                    </form>
+
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Validación del formulario
-        (function() {
-            'use strict'
-            var forms = document.querySelectorAll('.needs-validation')
-            Array.prototype.slice.call(forms).forEach(function(form) {
-                form.addEventListener('submit', function(event) {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
-    </script>
+<script>
+document.getElementById("add-item").addEventListener("click", () => {
+    const container = document.getElementById("items-container");
+    const row = document.createElement("div");
+    row.classList.add("input-group", "mb-2", "item-row");
+    row.innerHTML = `
+        <input type="text" class="form-control item-input" placeholder="Ej: ladrillos" required>
+        <button type="button" class="btn btn-outline-danger remove-item">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    container.appendChild(row);
+});
+
+document.addEventListener("click", e => {
+    if (e.target.closest(".remove-item")) {
+        e.target.closest(".item-row").remove();
+    }
+});
+
+document.querySelector("form").addEventListener("submit", () => {
+    const detalle = document.getElementById("detalle").value.trim();
+
+    const items = Array.from(document.querySelectorAll(".item-input"))
+        .map(i => i.value.trim())
+        .filter(i => i.length > 0);
+
+    const estructura = {};
+
+    if (detalle !== "") estructura["detalle"] = detalle;
+    if (items.length > 0) estructura["items"] = items;
+
+    document.getElementById("especificacion_json").value = JSON.stringify(estructura);
+});
+</script>
+
 </body>
 </html>
