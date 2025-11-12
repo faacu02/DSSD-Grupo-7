@@ -73,3 +73,21 @@ def cargar_etapa():
     return render_template('cargar_etapa.html',
                            case_id=case_id,
                            proyecto_id=proyecto_id)
+
+@etapa_bp.route('/ver_etapas/<int:proyecto_id>', methods=['GET'])
+@login_required
+def ver_etapas_proyecto(proyecto_id):
+    # obtener y filtrar etapas por proyecto (ejemplo simple)
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    proyecto = None  # cargar proyecto si lo deseas, por ejemplo desde Proyecto.query.get(proyecto_id)
+    return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto)
+
+@etapa_bp.route('/detalle_etapa/<int:etapa_id>', methods=['GET'])
+@login_required 
+def detalle_etapa(etapa_id):
+    etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    if not etapa:
+        flash('Etapa no encontrada.', 'error')
+        return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
+
+    return render_template('detalle_etapa.html', etapa=etapa)

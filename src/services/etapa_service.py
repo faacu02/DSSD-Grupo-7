@@ -17,3 +17,9 @@ def crear_etapa(nombre_etapa,
 
 def obtener_etapas():
     return Etapa.query.all()
+
+def obtener_etapas_por_proyecto(proyecto_id):
+    return Etapa.query.filter_by(proyecto_id=proyecto_id).all()
+
+def obtener_etapa_por_id(etapa_id):
+    return Etapa.query.get(etapa_id)
