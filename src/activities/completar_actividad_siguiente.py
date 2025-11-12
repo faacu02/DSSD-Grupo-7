@@ -139,3 +139,26 @@ def confirmar_proyecto():
         import traceback
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
+
+@bonita_bp_siguiente.route("/completar_etapa/<int:etapa_id>", methods=["POST"])
+def completar_etapa(etapa_id):
+    case_id = request.json.get("case_id")
+    access = AccessAPI()
+    try:
+        cookie, session = access.login()
+        process = Process(session)
+
+        activities = process.search_activity_by_case(case_id)
+        if not activities:
+            return jsonify({"success": False, "error": "No se encontraron actividades para el case."})
+        task_id = activities[0].get("id")
+
+        user = process.get_user_by_name("walter.bates")
+        process.assign_task(task_id, user["id"])
+        result = process.complete_activity(task_id)
+
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
