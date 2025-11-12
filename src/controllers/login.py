@@ -22,7 +22,7 @@ def login():
             access_api.password = password
             
             # Intentar hacer login
-            bonita_session = access_api.login()
+            bonita_session = access_api.login(username, password)
             # Si llegamos aquí, el login fue exitoso
             flash(f'¡Bienvenido {username}!', 'success')
             return redirect(url_for('formulario.index'))
