@@ -74,7 +74,7 @@
 												<td class="text-end">
 													<!-- Asumo que existe una vista para detalle de etapa en el blueprint 'etapa'.
 														 Si el nombre de la ruta es distinto, actualizar el url_for correspondiente. -->
-													<a href="{{ url_for('etapa.detalle_etapa', etapa_id=etapa.id, case_id=case_id) }}" class="btn btn-sm btn-outline-primary me-2">
+													<a href="{{ url_for('etapa.detalle_etapa', etapa_id=etapa.id, case_id=case_id, etapa_cloud_id=etapa.etapa_cloud_id) }}" class="btn btn-sm btn-outline-primary me-2">
 														<i class="fas fa-eye me-1"></i>Ver detalle
 													</a>
 												</td>
