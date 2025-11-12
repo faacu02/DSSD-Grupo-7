@@ -1,13 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 import requests
 import services.etapa_service as etapa_service
-from utils.login_required import login_required
 
 
 etapa_bp = Blueprint('etapa', __name__)
 
 @etapa_bp.route('/completar_etapa', methods=['GET', 'POST'])
-@login_required
 def cargar_etapa():
     if request.method == 'POST':
         case_id = request.form.get('case_id')

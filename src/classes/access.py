@@ -1,21 +1,24 @@
 import requests
-from flask import session as flask_session
 
 class AccessAPI:
+    _session = None   # sesión compartida entre todas las llamadas
+    _cookies = {}
+    _user = None
+    _password = None
+    _base_url = None
+    
+
     def __init__(self, base_url="http://localhost:8080/bonita/"):
         self.base_url = base_url
         self.login_url = f"{base_url}loginservice"
-        self.user = "walter.bates"
-        self.password = "bpm"
 
-    def login(self):
+    def login(self, user="walter.bates", password="bpm"):
         s = requests.Session()
-
         resp = s.post(
             self.login_url,
             data={
-                "username": self.user,
-                "password": self.password,
+                "username": user,
+                "password": password,
                 "redirect": "false"
             },
             headers={
@@ -24,65 +27,24 @@ class AccessAPI:
             }
         )
 
-        print("status:", resp.status_code)
-        print("cookies:", s.cookies.get_dict())
-
-        if resp.status_code in [200, 204]:
-            token = s.cookies.get("X-Bonita-API-Token")
-            jsessionid = s.cookies.get("JSESSIONID")
-            bonita_csrf_token = s.cookies.get("bonita.csrf.token")
-            
-            if not token:
-                raise Exception("Login exitoso pero no se obtuvo token")
-
-            # Obtener información del usuario desde Bonita
-            from classes.process import Process
-            process = Process(s, self.base_url)
-            user_info = process.get_user_by_name(self.user)
-            
-            user_id = None
-            user_groups = []
-            user_roles = []
-            user_actors = []
-            if user_info:
-                user_id = user_info.get("id")
-                # Obtener los grupos del usuario
-                try:
-                    user_groups = process.get_user_groups_display_names(user_id)
-                except Exception as e:
-                    print(f"Error obteniendo grupos del usuario: {e}")
-                    user_groups = []
-                
-                # Obtener los roles del usuario
-                try:
-                    user_roles = process.get_user_roles_names(user_id)
-                except Exception as e:
-                    print(f"Error obteniendo roles del usuario: {e}")
-                    user_roles = []
-                
-                # Obtener los actores/organizaciones del usuario
-              #  try:
-               #     user_actors = process.get_user_actors_names(user_id)
-               # except Exception as e:
-                #    print(f"Error obteniendo actores del usuario: {e}")
-                 #   user_actors = []
-                    
-            print(f"Usuario ID: {user_id}, Grupos: {user_groups}, Roles: {user_roles}")
-
-            # Guardar en sesión de Flask todas las cookies y datos del usuario
-            flask_session["bonita_user"] = self.user
-            flask_session["bonita_user_id"] = user_id
-            flask_session["bonita_user_groups"] = user_groups
-            flask_session["bonita_user_roles"] = user_roles
-            flask_session["bonita_password"] = self.password
-            flask_session["bonita_base_url"] = self.base_url
-            flask_session["bonita_token"] = token
-            flask_session["bonita_jsessionid"] = jsessionid
-            flask_session["bonita_csrf_token"] = bonita_csrf_token
-            flask_session["logged"] = True
-
-            return token, s
-        else:
+        if resp.status_code not in [200, 204]:
             raise Exception(f"Error login Bonita: {resp.status_code} {resp.text}")
 
-    
+        AccessAPI._session = s
+        AccessAPI._cookies = s.cookies.get_dict()
+        AccessAPI._user = user
+        AccessAPI._password = password
+        AccessAPI._base_url = self.base_url
+
+        print(f"✅ Login exitoso en Bonita como {user}")
+        print("Cookies:", AccessAPI._cookies)
+        return s
+
+    @staticmethod
+    def get_bonita_session():
+        """Devuelve la sesión logueada globalmente, o reloguea si no existe"""
+        if not AccessAPI._session:
+            print("⚠️ No había sesión activa, realizando login automático...")
+            api = AccessAPI(AccessAPI._base_url or "http://localhost:8080/bonita/")
+            api.login(AccessAPI._user or "walter.bates", AccessAPI._password or "bpm")
+        return AccessAPI._session

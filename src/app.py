@@ -3,6 +3,7 @@ from controllers.formulario import formulario_bp
 from activities.crear_proyecto import bonita_bp
 from activities.completar_actividad_siguiente import bonita_bp_siguiente
 from classes.request import request_bp
+from controllers.login import login_bp
 from db import db  
 from controllers.etapa import etapa_bp
 
@@ -20,6 +21,7 @@ with app.app_context():
 
 # Registrar el Blueprint
 app.register_blueprint(formulario_bp, url_prefix='')
+app.register_blueprint(login_bp, url_prefix='/login')
 app.register_blueprint(bonita_bp)
 app.register_blueprint(bonita_bp_siguiente)
 app.register_blueprint(request_bp)
