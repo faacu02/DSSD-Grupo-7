@@ -155,3 +155,11 @@ def login():
     # GET - mostrar formulario de login
     return render_template('login.html')
 
+@formulario_bp.route('/logout')
+@login_required
+def logout():
+    # Limpiar la sesión de Flask
+    session.clear()
+    flash('Sesión cerrada correctamente.', 'success')
+    return redirect(url_for('formulario.login'))
+
