@@ -1,12 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from flask_login import login_required
 import requests
 from classes.access import AccessAPI
 
-from formulario import formulario_bp
+login_bp = Blueprint('login', __name__)
 
 
-@formulario_bp.route('/login', methods=['GET', 'POST'])
+@login_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -23,8 +22,7 @@ def login():
             access_api.password = password
             
             # Intentar hacer login
-            token, bonita_session = access_api.login()
-            
+            bonita_session = access_api.login()
             # Si llegamos aquí, el login fue exitoso
             flash(f'¡Bienvenido {username}!', 'success')
             return redirect(url_for('formulario.index'))
@@ -36,11 +34,10 @@ def login():
     # GET - mostrar formulario de login
     return render_template('login.html')
 
-@formulario_bp.route('/logout')
-@login_required
+@login_bp.route('/logout')
 def logout():
     # Limpiar la sesión de Flask
     session.clear()
     flash('Sesión cerrada correctamente.', 'success')
-    return redirect(url_for('formulario.login'))
+    return redirect(url_for('login.login'))
     

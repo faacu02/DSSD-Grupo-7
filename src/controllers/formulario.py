@@ -4,7 +4,6 @@ import services.proyecto_servicce as proyecto_service
 import services.etapa_service as etapa_service
 from datetime import datetime
 from classes.access import AccessAPI
-from utils.login_required import login_required
 
 # Crear el Blueprint
 formulario_bp = Blueprint('formulario', __name__)
@@ -16,10 +15,9 @@ def root():
     """Ruta raíz - redirige al login o al index según el estado de sesión"""
     if session.get('logged'):
         return redirect(url_for('formulario.index'))
-    return redirect(url_for('formulario.login'))
+    return redirect(url_for('login.login'))
 
 @formulario_bp.route('/index')
-@login_required
 def index():
     """Página de inicio de ProjectPlanning"""
     return render_template('index.html')
@@ -32,7 +30,6 @@ def to_timestamp(fecha_str):
     return int(dt.timestamp() * 1000)
 
 @formulario_bp.route('/formulario_nombre', methods=['GET', 'POST'])
-@login_required
 def formulario_nombre():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
@@ -65,7 +62,6 @@ def formulario_nombre():
 
 
 @formulario_bp.route('/confirmar_proyecto', methods=['GET', 'POST'])
-@login_required
 def confirmar_proyecto():
     case_id = request.args.get('case_id')
     proyecto_id = request.args.get('proyecto_id')

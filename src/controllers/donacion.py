@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from flask_login import login_required
 import requests
 from classes.access import AccessAPI
 
@@ -9,7 +8,6 @@ from formulario import formulario_bp
 
 
 @formulario_bp.route('/cargar_donacion', methods=['GET', 'POST'])
-@login_required
 def cargar_donacion():
     if request.method == 'POST':
         donante_nombre = request.form.get('donante_nombre')
