@@ -1,9 +1,9 @@
 from multiprocessing import process
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, json, request, jsonify
 from classes.process import Process
 from classes.access import AccessAPI
 from datetime import datetime
-
+import json
 
 bonita_bp_siguiente = Blueprint("bonita_siguiente", __name__, url_prefix="/bonita")
 
@@ -14,9 +14,25 @@ def to_timestamp(fecha_str):
         return None
     dt = datetime.strptime(fecha_str, "%Y-%m-%d")
     return int(dt.timestamp() * 1000)
+
+from flask import Blueprint, request, jsonify
+from classes.process import Process
+from classes.access import AccessAPI
+from datetime import datetime
+import json
+
+bonita_bp_siguiente = Blueprint("bonita_siguiente", __name__, url_prefix="/bonita")
+
+
+def to_timestamp(fecha_str):
+    if not fecha_str:
+        return None
+    dt = datetime.strptime(fecha_str, "%Y-%m-%d")
+    return int(dt.timestamp() * 1000)
+
+
 @bonita_bp_siguiente.route("/cargar_etapa", methods=["POST"])
 def cargar_etapa():
-    access = AccessAPI()
     case_id = request.json.get("case_id")
     nombre_etapa = request.json.get("nombre_etapa")
     proyecto_id = request.json.get("proyecto_id")
@@ -24,17 +40,41 @@ def cargar_etapa():
     fecha_fin = request.json.get("fecha_fin")
     tipo_cobertura = request.json.get("tipo_cobertura")
     cobertura_solicitada = request.json.get("cobertura_solicitada")
-    ultima_etapa = request.json.get("ultima_etapa", False)   # ✅ llega como bool
+    ultima_etapa = request.json.get("ultima_etapa", False)
+
+    access = AccessAPI()
 
     try:
         cookie, session = access.login()
         process = Process(session)
 
-        # ✅ Setear variables
-        process.set_variable_by_case(case_id, "nombre_etapa", nombre_etapa, "java.lang.String")
-        process.set_variable_by_case(case_id, "proyecto_id", int(proyecto_id), "java.lang.Integer")
-        process.set_variable_by_case(case_id, "tipo_cobertura", tipo_cobertura, "java.lang.String")
-        process.set_variable_by_case(case_id, "cobertura_solicitada", cobertura_solicitada, "java.lang.String")
+        # 🧩 Normalizar cobertura_solicitada
+        if isinstance(cobertura_solicitada, str):
+            try:
+                cobertura_solicitada = json.loads(cobertura_solicitada)
+            except json.JSONDecodeError:
+                cobertura_solicitada = {"valor": cobertura_solicitada}
+        elif not isinstance(cobertura_solicitada, dict):
+            cobertura_solicitada = {"valor": str(cobertura_solicitada)}
+
+        # ✅ Armar el JSON limpio para enviar al cloud
+        etapa_data = {
+            "nombre": nombre_etapa,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "tipo_cobertura": tipo_cobertura,
+            "proyecto_id": 1,
+            "cobertura_solicitada": cobertura_solicitada
+        }
+
+        # 💾 Convertir a string JSON limpio
+        etapa_json_str = json.dumps(etapa_data, ensure_ascii=False)
+        print(f"[DEBUG] Etapa data enviada a Bonita:\n{etapa_json_str}")
+
+        # ✅ Setear variable etapa_data (que el conector usa como payload)
+        process.set_variable_by_case(case_id, "etapa_data", etapa_json_str, "java.lang.String")
+        print("[DEBUG] Variable etapa_data guardada correctamente en Bonita")
+
 
         if ultima_etapa == 'true':
             process.set_variable_by_case(case_id, "ultima_etapa", "true", "java.lang.Boolean")
@@ -56,15 +96,13 @@ def cargar_etapa():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
 
-
 @bonita_bp_siguiente.route("/confirmar_proyecto", methods=["POST"])
 def confirmar_proyecto():
-    access = AccessAPI()
     case_id = request.json.get("case_id")
     ultima_etapa = request.json.get("ultima_etapa", False)
-
+    access = AccessAPI()
     try:
-        # 1. Login
+        # Usar la sesión existente en lugar de hacer login nuevamente
         cookie, session = access.login()
         process = Process(session)
 
