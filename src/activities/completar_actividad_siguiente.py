@@ -172,3 +172,59 @@ def completar_seleccionar_proyecto():
         import traceback
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
+    
+@bonita_bp_siguiente.route("/completar_seleccionar_etapa", methods=["POST"])
+def completar_seleccionar_etapa():
+    case_id = request.json.get("case_id")
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        # Usa el helper para completar la tarea
+        result = completar_tarea_por_nombre(process, case_id, "Seleccionar Etapa")
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+    
+@bonita_bp_siguiente.route("/cargar_donacion", methods=["POST"])
+def cargar_donacion():
+    case_id = request.json.get("case_id")
+    etapa_id = request.json.get("etapa_id")
+    donante_nombre = request.json.get("donante_nombre")
+    monto = request.json.get("monto")
+    especificacion = request.json.get("especificacion")
+
+    try:
+        # Convertir monto a float si existe
+        monto_float = float(monto) if monto else None
+
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        # Preparar datos de la donación
+        donacion_data = {
+            'etapa_id': etapa_id,
+            'monto': monto_float if monto_float is not None else None,
+            'especificacion': especificacion if especificacion else None,
+            'donante_nombre': donante_nombre if donante_nombre else None,
+        }
+
+        # 💾 Convertir a string JSON limpio
+        donacion_json_str = json.dumps(donacion_data, ensure_ascii=False)
+        print(f"[DEBUG] Donación data enviada a Bonita:\n{donacion_json_str}")
+
+        # ✅ Setear variable donacion_data (que el conector usa como payload)
+        process.set_variable_by_case(case_id, "donacion_data", donacion_json_str, "java.lang.String")
+        print("[DEBUG] Variable donacion_data guardada correctamente en Bonita")
+
+        # Asignar y completar
+        result = completar_tarea_por_nombre(process, case_id, "Proponer donación")
+
+        return jsonify({"success": True, "result": result})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
