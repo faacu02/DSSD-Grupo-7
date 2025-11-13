@@ -16,34 +16,6 @@ def cargar_donacion():
     etapa_cloud_id = etapa.etapa_cloud_id if etapa else None
     if request.method == 'POST':
 
-        # -----------------------------------------
-        #   1. Obtener parámetros desde GET
-        # -----------------------------------------
-
-        # -----------------------------------------
-        #   2. Completar tarea "Seleccionar etapa" en Bonita
-        # -----------------------------------------
-        if case_id:
-            try:
-                response = requests.post(
-                    url_for('bonita_siguiente.completar_seleccionar_etapa', _external=True),
-                    json={"case_id": case_id}
-                )
-                data = response.json()
-
-                if not data.get("success"):
-                    print(f"⚠️ Error Bonita al completar 'Seleccionar etapa': {data.get('error')}")
-                else:
-                    print(f"✅ Tarea 'Seleccionar etapa' completada para case {case_id}")
-
-            except Exception as e:
-                print(f"⚠️ Error comunicando con Bonita: {e}")
-        else:
-            print("⚠️ No llegó case_id por GET, no se completó tarea en Bonita.")
-
-        # -----------------------------------------
-        #   3. Recibir datos del formulario
-        # -----------------------------------------
         donante_nombre = request.form.get('donante_nombre')
         monto = request.form.get('monto')
 
@@ -109,3 +81,4 @@ def cargar_donacion():
     return render_template('cargar_donacion.html',
                            case_id=case_id,
                            etapa_id=etapa_id, etapa_cloud_id=etapa_cloud_id)
+

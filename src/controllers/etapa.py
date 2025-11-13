@@ -71,22 +71,6 @@ def cargar_etapa():
 def ver_etapas_proyecto(proyecto_id):
     case_id = request.args.get('case_id')
 
-    if case_id:
-        try:
-            response = requests.post(
-                url_for('bonita_siguiente.completar_ver_proyectos', _external=True),
-                json={"case_id": case_id}
-            )
-            data = response.json()
-            if not data.get("success"):
-                print(f"⚠️ Bonita devolvió error al completar 'Ver proyectos': {data.get('error')}")
-            else:
-                print(f"✅ Tarea 'Ver proyectos' completada para case {case_id}")
-        except Exception as e:
-            print(f"⚠️ Error de conexión al completar 'Ver proyectos': {e}")
-    else:
-        print("⚠️ No se recibió case_id, no se completa tarea en Bonita.")
-
     etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
     proyecto = None
     return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
@@ -103,23 +87,6 @@ def detalle_etapa(etapa_id):
         # ⚠️ Como `etapa` no existe, no podés acceder a `etapa.proyecto_id`
         # por eso usás un redirect seguro:
         return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
-
-    # ✅ Completar tarea "Seleccionar proyecto" al entrar al detalle
-    if case_id:
-        try:
-            response = requests.post(
-                url_for('bonita_siguiente.completar_seleccionar_proyecto', _external=True),
-                json={"case_id": case_id}
-            )
-            data = response.json()
-            if not data.get("success"):
-                print(f"⚠️ Bonita devolvió error al completar 'Seleccionar proyecto': {data.get('error')}")
-            else:
-                print(f"✅ Tarea 'Seleccionar proyecto' completada para case {case_id}")
-        except Exception as e:
-            print(f"⚠️ Error de conexión al completar 'Seleccionar proyecto': {e}")
-    else:
-        print("⚠️ No se recibió case_id, no se completó tarea en Bonita.")
 
     # 🔹 Renderiza el detalle
     return render_template('detalle_etapa.html', etapa=etapa, case_id=case_id, etapa_cloud_id=etapa_cloud_id)

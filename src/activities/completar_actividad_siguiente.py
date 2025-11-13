@@ -130,53 +130,7 @@ def completar_etapa(etapa_id):
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
     
-
-@bonita_bp_siguiente.route("/completar_ver_proyectos", methods=["POST"])
-def completar_ver_proyectos():
-    case_id = request.json.get("case_id")
-    try:
-        session = AccessAPI.get_bonita_session()
-        process = Process(session)
-
-        # Usa el helper para completar la tarea
-        result = completar_tarea_por_nombre(process, case_id, "Ver proyectos")
-
-        return jsonify({"success": True, "result": result})
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({"success": False, "error": str(e)})
     
-@bonita_bp_siguiente.route("/completar_seleccionar_proyecto", methods=["POST"])
-def completar_seleccionar_proyecto():
-    case_id = request.json.get("case_id")
-    try:
-        session = AccessAPI.get_bonita_session()
-        process = Process(session)
-
-        # Usa el helper para completar la tarea
-        result = completar_tarea_por_nombre(process, case_id, "Seleccionar proyecto")
-
-        return jsonify({"success": True, "result": result})
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({"success": False, "error": str(e)})
-    
-@bonita_bp_siguiente.route("/completar_seleccionar_etapa", methods=["POST"])
-def completar_seleccionar_etapa():
-    case_id = request.json.get("case_id")
-    try:
-        session = AccessAPI.get_bonita_session()
-        process = Process(session)
-
-        # Usa el helper para completar la tarea
-        result = completar_tarea_por_nombre(process, case_id, "Seleccionar Etapa")
-        return jsonify({"success": True, "result": result})
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({"success": False, "error": str(e)})
     
 @bonita_bp_siguiente.route("/cargar_donacion", methods=["POST"])
 def cargar_donacion():
