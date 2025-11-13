@@ -188,3 +188,24 @@ def cargar_donacion():
         import traceback
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
+
+@bonita_bp_siguiente.route("/ver_propuestas", methods=["GET"])
+def ver_propuestas():
+    case_id = request.args.get("case_id")
+    etapa_id = request.args.get("etapa_id")
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        # Buscar actividades del case
+        process.set_variable_by_case(case_id, "etapa_id_get", int(etapa_id), "java.lang.Integer")
+        result = completar_tarea_por_nombre(process, case_id, "Ver propuestas")
+        propuestas = process.wait_for_case_variable(case_id, "propuestas_por_etapa")
+
+
+        return jsonify({"success": True, "propuestas": propuestas})
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})

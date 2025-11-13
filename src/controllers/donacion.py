@@ -82,3 +82,21 @@ def cargar_donacion():
                            case_id=case_id,
                            etapa_id=etapa_id, etapa_cloud_id=etapa_cloud_id)
 
+@donacion_bp.route('/ver_propuestas/<int:etapa_id>', methods=['GET'])
+def ver_propuestas(etapa_id):
+    case_id = request.args.get('case_id')
+    etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    response = requests.get(
+        url_for('bonita_siguiente.ver_propuestas', _external=True),
+        params={"etapa_id": etapa.etapa_cloud_id, "case_id": case_id}
+        )
+    data = response.json()
+    propuestas_json = data.get("propuestas")      # es string JSON real
+    propuestas = json.loads(propuestas_json)["propuestas"]
+
+    return render_template(
+        'ver_propuestas.html',
+        propuestas=propuestas,
+        case_id=case_id,
+        etapa_id=etapa_id
+    )

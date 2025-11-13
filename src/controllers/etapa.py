@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 import requests
 from models import etapa
 import services.etapa_service as etapa_service
+import services.proyecto_servicce as proyecto_service
 
 
 etapa_bp = Blueprint('etapa', __name__)
@@ -106,3 +107,12 @@ def completar_etapa(etapa_id):
         return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
 
     return render_template('completar_etapa.html', etapa=etapa)
+
+@etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
+def ver_etapas_ong_originante(proyecto_id):
+    case_id = request.args.get('case_id')
+
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    proyecto = None
+    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
+
