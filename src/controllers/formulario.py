@@ -5,7 +5,6 @@ import services.etapa_service as etapa_service
 from datetime import datetime
 from classes.access import AccessAPI
 
-# Crear el Blueprint
 formulario_bp = Blueprint('formulario', __name__)
 
 
@@ -42,11 +41,9 @@ def formulario_nombre():
                 )
                 data = response.json()
                 if data.get("success"):
-                    # Obtener el case_id del resultado
                     case_id = data["result"].get("caseId") if data.get("result") else None
                     flash(f'Proyecto creado correctamente. Nombre: {nombre}', 'success')
                     if case_id:
-                        # Redirigir a cargar_etapa y pasar el case_id y proyecto_id por la URL
                         return redirect(url_for('etapa.cargar_etapa', case_id=case_id, proyecto_id=proyecto.id))
                     flash(f'Proyecto creado correctamente. Nombre: {nombre}', 'success')
                 else:
@@ -56,7 +53,6 @@ def formulario_nombre():
             return redirect(url_for('formulario.formulario_nombre'))
         else:
             flash('Por favor, ingresa un nombre válido.', 'error')
-    # Obtener case_id y proyecto_id de la URL si existen y pasarlos al template
     case_id = request.args.get('case_id')
     return render_template('formulario_nombre.html', case_id=case_id)
 
@@ -74,7 +70,6 @@ def confirmar_proyecto():
             data = response.json()
             if data.get("success"):
                 flash('Proyecto confirmado correctamente.', 'success')
-                # 🔹 Redirigir a la lista de proyectos, pasando el case_id
                 return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
             else:
                 flash(f'Error al confirmar: {data.get("error")}', 'error')

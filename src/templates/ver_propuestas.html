@@ -89,6 +89,20 @@
 													</span>
 												</td>
 												<td>{{ p.created_at[:10] }}</td>
+												<td>
+												{% if p.estado == 'pending' %}
+												<a href="{{ url_for('donacion.aceptar_propuesta',
+																	propuesta_id=p.id,
+																	etapa_id=etapa_id,
+																	case_id=case_id, propuestas=propuestas,
+																	propuesta=p) }}"
+												class="btn btn-success btn-sm">
+													<i class="fas fa-check"></i> Aceptar
+												</a>
+												{% else %}
+													<span class="text-muted">—</span>
+												{% endif %}
+											</td>
 											</tr>
 										{% endfor %}
 									</tbody>

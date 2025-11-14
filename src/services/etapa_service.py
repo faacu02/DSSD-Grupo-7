@@ -25,3 +25,11 @@ def obtener_etapas_por_proyecto(proyecto_id):
 
 def obtener_etapa_por_id(etapa_id):
     return Etapa.query.get(etapa_id)
+
+def actualizar_cobertura(etapa_id, nueva_cobertura):
+    etapa = obtener_etapa_por_id(etapa_id)
+    if etapa:
+        etapa.cobertura_solicitada = nueva_cobertura
+        db.session.commit()
+        return etapa
+    return None

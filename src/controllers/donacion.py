@@ -19,29 +19,22 @@ def cargar_donacion():
         donante_nombre = request.form.get('donante_nombre')
         monto = request.form.get('monto')
 
-        # ES LA CLAVE → VIENE COMO JSON STRING DEL FRONT
         especificacion_raw = request.form.get('especificacion')
 
-        # -----------------------------------------
-        #   4. Parsear especificación
-        # -----------------------------------------
+
         try:
             especificacion = json.loads(especificacion_raw) if especificacion_raw else None
         except json.JSONDecodeError:
             especificacion = {"detalle": especificacion_raw}
 
-        # -----------------------------------------
-        #   5. Convertir monto correctamente
-        # -----------------------------------------
+
         try:
             monto_float = float(monto) if monto else None
         except ValueError:
             flash("El monto debe ser un número válido.", "error")
             return redirect(request.url)
 
-        # -----------------------------------------
-        #   6. Armar JSON limpio para Bonita
-        # -----------------------------------------
+
         donacion_data = {
             "case_id": case_id,
             "etapa_id": etapa_cloud_id,
@@ -52,9 +45,7 @@ def cargar_donacion():
 
         print(f"📤 JSON enviado a Bonita:\n{donacion_data}")
 
-        # -----------------------------------------
-        #   7. Llamar endpoint interno /bonita/cargar_donacion
-        # -----------------------------------------
+
         try:
             response = requests.post(
                 url_for('bonita_siguiente.cargar_donacion', _external=True),
@@ -72,9 +63,7 @@ def cargar_donacion():
         except Exception as e:
             flash(f'Error al cargar donación: {str(e)}', 'error')
 
-    # -----------------------------------------
-    #  GET → Renderizar formulario con params
-    # -----------------------------------------
+
     case_id = request.args.get('case_id')
     etapa_id = request.args.get('etapa_id')
 
@@ -91,7 +80,7 @@ def ver_propuestas(etapa_id):
         params={"etapa_id": etapa.etapa_cloud_id, "case_id": case_id}
         )
     data = response.json()
-    propuestas_json = data.get("propuestas")      # es string JSON real
+    propuestas_json = data.get("propuestas")     
     propuestas = json.loads(propuestas_json)["propuestas"]
 
     return render_template(
@@ -100,3 +89,26 @@ def ver_propuestas(etapa_id):
         case_id=case_id,
         etapa_id=etapa_id
     )
+
+@donacion_bp.route('/aceptar_propuesta/<int:propuesta_id>', methods=['GET'])
+def aceptar_propuesta(propuesta_id):
+    case_id = request.args.get('case_id')
+    etapa_id = request.args.get('etapa_id')
+    propuestas = request.args.get('propuestas')
+
+    resp = requests.post(
+        url_for('bonita_siguiente.aceptar_propuesta', _external=True),
+        json={"propuesta_id": propuesta_id, "case_id": case_id}
+    )
+
+    data = resp.json()
+    if not data.get("success"):
+        flash("Error al aceptar propuesta: " + data.get("error"), "error")
+    else:
+        etapa_service.actualizar_cobertura(etapa_id, request.args.get('cobertura'))
+        flash("Propuesta aceptada correctamente", "success")
+
+    return redirect(url_for('etapa.detalle_etapa',
+                            etapa_id=etapa_id,
+                            case_id=case_id,
+                            ))
