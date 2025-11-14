@@ -38,7 +38,9 @@ def formulario_nombre():
                 proyecto = proyecto_service.crear_proyecto(nombre)
                 response = requests.post(
                     url_for('bonita.completar_actividad', _external=True),
-                    json={"nombre": nombre,"proyecto_id": proyecto.id}
+                    json={"nombre": nombre,"proyecto_id": proyecto.id, "bonita_username": session.get("bonita_username")},
+                    cookies=session.get("bonita_cookies"),
+                    
                 )
                 data = response.json()
                 if data.get("success"):
