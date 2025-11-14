@@ -45,7 +45,6 @@ def cargar_etapa():
         session = AccessAPI.get_bonita_session()
         process = Process(session)
 
-        # 🧩 Normalizar cobertura_solicitada
         if isinstance(cobertura_solicitada, str):
             try:
                 cobertura_solicitada = json.loads(cobertura_solicitada)
@@ -54,7 +53,6 @@ def cargar_etapa():
         elif not isinstance(cobertura_solicitada, dict):
             cobertura_solicitada = {"valor": str(cobertura_solicitada)}
 
-        # ✅ Armar el JSON limpio para enviar al cloud
         etapa_data = {
             "nombre": nombre_etapa,
             "fecha_inicio": fecha_inicio,
@@ -64,11 +62,9 @@ def cargar_etapa():
             "cobertura_solicitada": cobertura_solicitada
         }
 
-        # 💾 Convertir a string JSON limpio
         etapa_json_str = json.dumps(etapa_data, ensure_ascii=False)
         print(f"[DEBUG] Etapa data enviada a Bonita:\n{etapa_json_str}")
 
-        # ✅ Setear variable etapa_data (que el conector usa como payload)
         process.set_variable_by_case(case_id, "etapa_data", etapa_json_str, "java.lang.String")
         print("[DEBUG] Variable etapa_data guardada correctamente en Bonita")
 
@@ -76,7 +72,6 @@ def cargar_etapa():
         if ultima_etapa == 'true':
             process.set_variable_by_case(case_id, "ultima_etapa", "true", "java.lang.Boolean")
 
-        # Asignar y completar
         result = completar_tarea_por_nombre(process, case_id, "Cargar etapa")
         etapa_cloud_id = process.wait_for_case_variable(case_id, "etapa_cloud_id")
         print("[DEBUG] etapa_cloud_id recuperado:", etapa_cloud_id)
@@ -97,11 +92,9 @@ def confirmar_proyecto():
     case_id = request.json.get("case_id")
     ultima_etapa = request.json.get("ultima_etapa", False)
     try:
-        # Usar la sesión existente en lugar de hacer login nuevamente
         session = AccessAPI.get_bonita_session()
         process = Process(session)
 
-        # 2. Setear la variable ultima_etapa en el case
         valor = "true" if ultima_etapa else "false"
         process.set_variable_by_case(case_id, "ultima_etapa", valor, "java.lang.Boolean")
 
@@ -138,32 +131,23 @@ def cargar_donacion():
     etapa_id = request.json.get("etapa_id")
     donante_nombre = request.json.get("donante_nombre")
     monto = request.json.get("monto")
-    especificacion = request.json.get("especificacion")   # YA ES UN DICT
+    especificacion = request.json.get("especificacion")  
     
     try:
-        # Convertir monto a float si existe
         monto_float = float(monto) if monto else None
 
         session = AccessAPI.get_bonita_session()
         process = Process(session)
 
-        # ----------------------------------------------------------------------------
-        # YA NO HAY NORMALIZACIÓN — VIENE TODO PERFECTO DEL FRONT
-        # Si especificacion es string (no debería pasar), igual lo intento parsear
-        # ----------------------------------------------------------------------------
         if isinstance(especificacion, str):
             try:
                 especificacion = json.loads(especificacion)
             except:
                 especificacion = {"detalle": especificacion}
 
-        # Si no es dict (caso rarísimo), lo convierto en detalle
         if not isinstance(especificacion, dict):
             especificacion = {"detalle": str(especificacion)}
 
-        # ----------------------------------------------------------------------------
-        # Armar JSON tal como lo espera el conector del cloud
-        # ----------------------------------------------------------------------------
         donacion_data = {
             "etapa_id": etapa_id,
             "monto": monto_float,
@@ -171,15 +155,12 @@ def cargar_donacion():
             "donante_nombre": donante_nombre,
         }
 
-        # Transformar a JSON (String) para Bonita
         donacion_json_str = json.dumps(donacion_data, ensure_ascii=False)
         print(f"[DEBUG] Donación data enviada a Bonita:\n{donacion_json_str}")
 
-        # Guardar variable en Bonita
         process.set_variable_by_case(case_id, "donacion_data", donacion_json_str, "java.lang.String")
         print("[DEBUG] Variable donacion_data guardada correctamente en Bonita")
 
-        # Completar tarea de Bonita
         result = completar_tarea_por_nombre(process, case_id, "Proponer donación")
 
         return jsonify({"success": True, "result": result})
@@ -197,13 +178,35 @@ def ver_propuestas():
         session = AccessAPI.get_bonita_session()
         process = Process(session)
 
-        # Buscar actividades del case
         process.set_variable_by_case(case_id, "etapa_id_get", int(etapa_id), "java.lang.Integer")
         result = completar_tarea_por_nombre(process, case_id, "Ver propuestas")
         propuestas = process.wait_for_case_variable(case_id, "propuestas_por_etapa")
 
 
         return jsonify({"success": True, "propuestas": propuestas})
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+@bonita_bp_siguiente.route('/aceptar_propuesta', methods=['POST'])
+def aceptar_propuesta():
+    case_id = request.json.get('case_id')
+    propuesta_id = request.json.get('propuesta_id')
+
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
+
+        result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
+        cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
+        cobertura_actual = json.loads(cobertura_actual_raw)
+
+
+        return jsonify({"success": True, "result": result, "cobertura_actual": cobertura_actual})
 
     except Exception as e:
         import traceback

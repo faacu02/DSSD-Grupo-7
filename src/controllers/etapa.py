@@ -85,11 +85,9 @@ def detalle_etapa(etapa_id):
 
     if not etapa:
         flash('Etapa no encontrada.', 'error')
-        # ⚠️ Como `etapa` no existe, no podés acceder a `etapa.proyecto_id`
-        # por eso usás un redirect seguro:
+
         return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
 
-    # 🔹 Renderiza el detalle
     return render_template('detalle_etapa.html', etapa=etapa, case_id=case_id, etapa_cloud_id=etapa_cloud_id)
 
 
@@ -101,7 +99,6 @@ def completar_etapa(etapa_id):
         return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
 
     if request.method == 'POST':
-        # Lógica para completar la etapa
         etapa_service.marcar_etapa_completada(etapa_id)
         flash('Etapa completada correctamente.', 'success')
         return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
