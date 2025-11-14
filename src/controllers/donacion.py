@@ -106,7 +106,8 @@ def aceptar_propuesta(propuesta_id):
     if not data.get("success"):
         flash("Error al aceptar propuesta: " + data.get("error"), "error")
     else:
-        etapa_service.actualizar_cobertura(etapa_id, request.args.get('cobertura'))
+        etapa_service.actualizar_cobertura(etapa_id, data.get("cobertura_actual")
+)
         flash("Propuesta aceptada correctamente", "success")
 
     return redirect(url_for('etapa.detalle_etapa',

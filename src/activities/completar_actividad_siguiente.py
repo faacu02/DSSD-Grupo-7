@@ -202,8 +202,11 @@ def aceptar_propuesta():
         process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
 
         result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
+        cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
+        cobertura_actual = json.loads(cobertura_actual_raw)
 
-        return jsonify({"success": True, "result": result})
+
+        return jsonify({"success": True, "result": result, "cobertura_actual": cobertura_actual})
 
     except Exception as e:
         import traceback
