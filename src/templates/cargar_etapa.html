@@ -173,8 +173,20 @@
             }
         });
 
+        // --- Mostrar/ocultar botón "Agregar valor" según tipo de cobertura ---
+        const tipoCoberturaSelect = document.getElementById("tipo_cobertura");
+        const addCoberturaBtn = document.getElementById("add-cobertura");
+
+        tipoCoberturaSelect.addEventListener("change", function() {
+            if (this.value === "economico") {
+                addCoberturaBtn.style.display = "none";
+            } else {
+                addCoberturaBtn.style.display = "inline-block";
+            }
+        });
+
         // --- Cobertura dinámica ---
-        document.getElementById("add-cobertura").addEventListener("click", function() {
+        addCoberturaBtn.addEventListener("click", function() {
             const container = document.getElementById("cobertura-container");
             const div = document.createElement("div");
             div.classList.add("input-group", "mb-2", "cobertura-item");

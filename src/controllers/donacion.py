@@ -14,10 +14,11 @@ def cargar_donacion():
     etapa_id = request.args.get('etapa_id')
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
     etapa_cloud_id = etapa.etapa_cloud_id if etapa else None
+    tipo_cobertura = etapa.tipo_cobertura if etapa else None
     if request.method == 'POST':
 
         donante_nombre = request.form.get('donante_nombre')
-        monto = request.form.get('monto')
+        monto = request.form.get('monto', 0)
 
         especificacion_raw = request.form.get('especificacion')
 
@@ -69,7 +70,7 @@ def cargar_donacion():
 
     return render_template('cargar_donacion.html',
                            case_id=case_id,
-                           etapa_id=etapa_id, etapa_cloud_id=etapa_cloud_id)
+                           etapa_id=etapa_id, etapa_cloud_id=etapa_cloud_id, tipo_cobertura=tipo_cobertura)
 
 @donacion_bp.route('/ver_propuestas/<int:etapa_id>', methods=['GET'])
 def ver_propuestas(etapa_id):
