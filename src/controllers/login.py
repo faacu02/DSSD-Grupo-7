@@ -1,9 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-import requests
 from classes.access import AccessAPI
 
 login_bp = Blueprint('login', __name__)
-
 
 @login_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -16,14 +14,14 @@ def login():
             return render_template('login.html')
         
         try:
-            # Crear instancia de AccessAPI con las credenciales del formulario
+            # Login en Bonita usando OPCIÓN 1
             access_api = AccessAPI()
-            access_api.user = username
-            access_api.password = password
-            
-            # Intentar hacer login
-            bonita_session = access_api.login()
-            # Si llegamos aquí, el login fue exitoso
+            bonita_session = access_api.login(username, password)
+
+            # Guardar datos en la sesión de Flask
+            session["bonita_username"] = username
+            session["bonita_cookies"] = bonita_session.cookies.get_dict()
+
             flash(f'¡Bienvenido {username}!', 'success')
             return redirect(url_for('formulario.index'))
             
@@ -31,13 +29,11 @@ def login():
             flash(f'Error de autenticación: {str(e)}', 'error')
             return render_template('login.html')
     
-    # GET - mostrar formulario de login
     return render_template('login.html')
+
 
 @login_bp.route('/logout')
 def logout():
-    # Limpiar la sesión de Flask
     session.clear()
     flash('Sesión cerrada correctamente.', 'success')
     return redirect(url_for('login.login'))
-    
