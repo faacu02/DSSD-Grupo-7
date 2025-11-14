@@ -9,3 +9,7 @@ def crear_proyecto(nombre):
 
 def obtener_proyectos():
     return Proyecto.query.all()
+
+
+def obtener_proyectos_completados():
+    return Proyecto.query.filter_by(completado=True).all()

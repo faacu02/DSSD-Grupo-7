@@ -93,3 +93,8 @@ def ver_proyectos():
     proyectos = proyecto_service.obtener_proyectos()
 
     return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
+
+@formulario_bp.route('/proyectos/completados', methods=['GET'])
+def proyectos_completados():
+    proyectos = proyecto_service.obtener_proyectos_completados()
+    return render_template('proyectos_completados.html', proyectos=proyectos)
