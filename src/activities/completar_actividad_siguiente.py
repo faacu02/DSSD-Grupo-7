@@ -216,6 +216,7 @@ def completar_etapa():
         time.sleep(0.3)
 
         # 3️⃣ Completar "Completar etapa"
+        process.set_variable_by_case(case_id, "etapa_a_completar_id", int(etapa_id), "java.lang.Integer")
         segunda = completar_tarea_disponible(process, case_id)
 
         return jsonify({"success": True, "result": segunda})
