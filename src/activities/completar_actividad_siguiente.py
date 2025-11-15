@@ -259,3 +259,27 @@ def esperar_tarea_disponible(process, case_id, intentos=10, delay=0.2):
             return tareas[0]
         time.sleep(delay)
     return None
+
+@bonita_bp_siguiente.route('/marcar_como_completado', methods=['POST'])
+def marcar_proyecto_como_completado():
+    case_id = request.json.get('case_id')
+
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+        process.set_variable_by_case(case_id, "ultima_etapa_a_completar", "true", "java.lang.Boolean")
+
+
+        primera = completar_tarea_disponible(process, case_id)
+
+        # 2️⃣ Esperar que Bonita cree "Completar etapa"
+        time.sleep(0.3)
+
+        # 3️⃣ Completar "Completar etapa"
+        segunda = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": segunda})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
