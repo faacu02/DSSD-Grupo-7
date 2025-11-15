@@ -91,19 +91,27 @@ def detalle_etapa(etapa_id):
     return render_template('detalle_etapa.html', etapa=etapa, case_id=case_id, etapa_cloud_id=etapa_cloud_id)
 
 
-@etapa_bp.route('/completar/<int:etapa_id>', methods=['GET', 'POST'])
+@etapa_bp.route('/completar/<int:etapa_id>', methods=['GET'])
 def completar_etapa(etapa_id):
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    case_id = request.args.get('case_id')
+    ultima_propuesta = request.args.get('ultima_propuesta')
+
     if not etapa:
         flash('Etapa no encontrada.', 'error')
         return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
+    response = requests.post(
+        url_for('bonita_siguiente.completar_etapa', _external=True),
+        json={"case_id": case_id, "etapa_id": etapa.etapa_cloud_id, "ultima_propuesta": ultima_propuesta}
+    )
+    data = response.json()
+    if not data.get("success"):
+        flash("Error al completar etapa: " + data.get("error"), "error")
+    else:
+        flash("Etapa completada correctamente", "success")
+    etapas= etapa_service.obtener_etapas_por_proyecto(etapa.proyecto_id)
 
-    if request.method == 'POST':
-        etapa_service.marcar_etapa_completada(etapa_id)
-        flash('Etapa completada correctamente.', 'success')
-        return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
-
-    return render_template('completar_etapa.html', etapa=etapa)
+    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=None,case_id=case_id)
 
 @etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
 def ver_etapas_ong_originante(proyecto_id):
