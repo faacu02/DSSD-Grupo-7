@@ -107,23 +107,6 @@ def confirmar_proyecto():
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
 
-@bonita_bp_siguiente.route("/completar_etapa/<int:etapa_id>", methods=["POST"])
-def completar_etapa(etapa_id):
-    case_id = request.json.get("case_id")
-    access = AccessAPI()
-    try:
-        session = AccessAPI.get_bonita_session()
-        process = Process(session)
-
-        result = completar_tarea_por_nombre(process, case_id, "Completar etapa")
-
-        return jsonify({"success": True, "result": result})
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({"success": False, "error": str(e)})
-    
-    
     
 @bonita_bp_siguiente.route("/cargar_donacion", methods=["POST"])
 def cargar_donacion():
@@ -194,24 +177,42 @@ def ver_propuestas():
 def aceptar_propuesta():
     case_id = request.json.get('case_id')
     propuesta_id = request.json.get('propuesta_id')
+
+    try:
+        session = AccessAPI.get_bonita_session()
+        process = Process(session)
+
+        process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
+
+        result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
+
+        cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
+        cobertura_actual = json.loads(cobertura_actual_raw)
+        return jsonify({"success": True, "result": result, "cobertura_actual": cobertura_actual})
+
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+@bonita_bp_siguiente.route('/completar_etapa', methods=['POST'])
+def completar_etapa():
+    case_id = request.json.get('case_id')
+    etapa_id = request.json.get('etapa_id')
     ultima_propuesta = request.json.get('ultima_propuesta', False)
 
     try:
         session = AccessAPI.get_bonita_session()
         process = Process(session)
+
         if ultima_propuesta == 'true':
+            if isinstance(ultima_propuesta, str):
+                 ultima_propuesta = ultima_propuesta.lower() == "true"
             process.set_variable_by_case(case_id, "ultima_propuesta", "true", "java.lang.Boolean")
-        else:
-            process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
+        completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
+        result = completar_tarea_por_nombre(process, case_id, "Completar etapa")
 
-        result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
-        if ultima_propuesta == 'true':
-            cobertura_actual = None
-        else:
-            cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
-            cobertura_actual = json.loads(cobertura_actual_raw)
-        return jsonify({"success": True, "result": result, "cobertura_actual": cobertura_actual})
-
+        return jsonify({"success": True, "result": result})
     except Exception as e:
         import traceback
         print(traceback.format_exc())
