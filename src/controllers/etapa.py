@@ -74,7 +74,7 @@ def ver_etapas_proyecto(proyecto_id):
 
     etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
     proyecto = None
-    return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
+    return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto, case_id=case_id, proyecto_id=proyecto_id)
 
 
 @etapa_bp.route('/detalle_etapa/<int:etapa_id>', methods=['GET'])

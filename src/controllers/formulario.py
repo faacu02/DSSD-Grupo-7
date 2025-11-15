@@ -88,3 +88,22 @@ def ver_proyectos():
     proyectos = proyecto_service.obtener_proyectos()
 
     return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
+
+@formulario_bp.route('/marcar_como_completado/<int:proyecto_id>', methods=['POST'])
+def marcar_como_completado(proyecto_id):
+    case_id = request.form.get('case_id')
+    try:
+        proyecto_service.marcar_proyecto_como_completado(proyecto_id)
+        response = requests.post(
+            url_for('bonita_siguiente.marcar_proyecto_como_completado', _external=True),
+            json={"case_id": case_id}
+        )
+        data = response.json()
+        if data.get("success"):
+            flash('Proyecto marcado como completado correctamente.', 'success')
+        else:
+            flash(f'Error al completar proyecto: {data.get("error")}', 'error')
+    except Exception as e:
+        flash(f'Error de conexión: {str(e)}', 'error')
+
+    return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
