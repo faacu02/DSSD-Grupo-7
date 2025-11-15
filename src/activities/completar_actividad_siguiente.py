@@ -72,7 +72,7 @@ def cargar_etapa():
         if ultima_etapa == 'true':
             process.set_variable_by_case(case_id, "ultima_etapa", "true", "java.lang.Boolean")
 
-        result = completar_tarea_por_nombre(process, case_id, "Cargar etapa")
+        result = completar_tarea_disponible(process, case_id)
         etapa_cloud_id = process.wait_for_case_variable(case_id, "etapa_cloud_id")
         print("[DEBUG] etapa_cloud_id recuperado:", etapa_cloud_id)
 
@@ -99,7 +99,7 @@ def confirmar_proyecto():
         process.set_variable_by_case(case_id, "ultima_etapa", valor, "java.lang.Boolean")
 
         
-        result = completar_tarea_por_nombre(process, case_id, "Confirmar etapas")
+        result = completar_tarea_disponible(process, case_id)
 
         return jsonify({"success": True, "result": result})
     except Exception as e:
@@ -144,7 +144,7 @@ def cargar_donacion():
         process.set_variable_by_case(case_id, "donacion_data", donacion_json_str, "java.lang.String")
         print("[DEBUG] Variable donacion_data guardada correctamente en Bonita")
 
-        result = completar_tarea_por_nombre(process, case_id, "Proponer donación")
+        result = completar_tarea_disponible(process, case_id)
 
         return jsonify({"success": True, "result": result})
 
@@ -162,7 +162,7 @@ def ver_propuestas():
         process = Process(session)
 
         process.set_variable_by_case(case_id, "etapa_id_get", int(etapa_id), "java.lang.Integer")
-        result = completar_tarea_por_nombre(process, case_id, "Ver propuestas")
+        result = completar_tarea_disponible(process, case_id)
         propuestas = process.wait_for_case_variable(case_id, "propuestas_por_etapa")
 
 
@@ -184,7 +184,7 @@ def aceptar_propuesta():
 
         process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
 
-        result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
+        result = completar_tarea_disponible(process, case_id)
 
         cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
         cobertura_actual = json.loads(cobertura_actual_raw)
@@ -209,11 +209,52 @@ def completar_etapa():
             if isinstance(ultima_propuesta, str):
                  ultima_propuesta = ultima_propuesta.lower() == "true"
             process.set_variable_by_case(case_id, "ultima_propuesta", "true", "java.lang.Boolean")
-        completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
-        result = completar_tarea_por_nombre(process, case_id, "Completar etapa")
 
-        return jsonify({"success": True, "result": result})
+        primera = completar_tarea_disponible(process, case_id)
+
+        # 2️⃣ Esperar que Bonita cree "Completar etapa"
+        time.sleep(0.3)
+
+        # 3️⃣ Completar "Completar etapa"
+        segunda = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": segunda})
     except Exception as e:
         import traceback
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
+
+def completar_tarea_disponible(process, case_id):
+    """
+    Busca la tarea humana disponible para el case y la completa,
+    sin importar el nombre.
+    """
+    # Buscar actividades disponibles
+    activities = process.search_activity_by_case(case_id)
+    if not activities:
+        raise Exception(f"No hay tareas disponibles para el case {case_id}")
+
+    # Tomar la primera tarea disponible
+    task = activities[0]
+    task_id = task["id"]
+
+    # Asignar al usuario actual (Walter)
+    user = process.get_user_by_name("walter.bates")
+    process.assign_task(task_id, user["id"])
+
+    # Completar la tarea
+    process.complete_activity(task_id)
+
+    return {
+        "task_id": task_id,
+        "task_name": task.get("displayName"),
+        "technical_name": task.get("name")
+    }
+
+def esperar_tarea_disponible(process, case_id, intentos=10, delay=0.2):
+    for _ in range(intentos):
+        tareas = process.search_activity_by_case(case_id)
+        if tareas:
+            return tareas[0]
+        time.sleep(delay)
+    return None
