@@ -194,18 +194,22 @@ def ver_propuestas():
 def aceptar_propuesta():
     case_id = request.json.get('case_id')
     propuesta_id = request.json.get('propuesta_id')
+    ultima_propuesta = request.json.get('ultima_propuesta', False)
 
     try:
         session = AccessAPI.get_bonita_session()
         process = Process(session)
-
-        process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
+        if ultima_propuesta == 'true':
+            process.set_variable_by_case(case_id, "ultima_propuesta", "true", "java.lang.Boolean")
+        else:
+            process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
 
         result = completar_tarea_por_nombre(process, case_id, "Aceptar propuesta")
-        cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
-        cobertura_actual = json.loads(cobertura_actual_raw)
-
-
+        if ultima_propuesta == 'true':
+            cobertura_actual = None
+        else:
+            cobertura_actual_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
+            cobertura_actual = json.loads(cobertura_actual_raw)
         return jsonify({"success": True, "result": result, "cobertura_actual": cobertura_actual})
 
     except Exception as e:

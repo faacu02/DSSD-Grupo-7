@@ -96,18 +96,21 @@ def aceptar_propuesta(propuesta_id):
     case_id = request.args.get('case_id')
     etapa_id = request.args.get('etapa_id')
     propuestas = request.args.get('propuestas')
+    ultima_propuesta = request.args.get('ultima_propuesta')
 
     resp = requests.post(
         url_for('bonita_siguiente.aceptar_propuesta', _external=True),
-        json={"propuesta_id": propuesta_id, "case_id": case_id}
+        json={"propuesta_id": propuesta_id, "case_id": case_id, "ultima_propuesta": ultima_propuesta}
     )
 
     data = resp.json()
     if not data.get("success"):
         flash("Error al aceptar propuesta: " + data.get("error"), "error")
     else:
-        etapa_service.actualizar_cobertura(etapa_id, data.get("cobertura_actual")
-)
+        if (data.get("cobertura_actual") is not None):
+            etapa_service.actualizar_cobertura(etapa_id, data.get("cobertura_actual"))
+        else:
+            
         flash("Propuesta aceptada correctamente", "success")
 
     return redirect(url_for('etapa.detalle_etapa',
