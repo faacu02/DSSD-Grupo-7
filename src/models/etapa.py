@@ -11,3 +11,4 @@ class Etapa(db.Model):
     cobertura_solicitada = db.Column(db.String, nullable=False)
     cobertura_actual = db.Column(db.String, nullable=True)
     etapa_cloud_id = db.Column(db.Integer, nullable=True)
+    estado = db.Column(db.String(50), nullable=True, default='Pendiente')

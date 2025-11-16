@@ -4,6 +4,7 @@ from datetime import datetime
 from classes.access import AccessAPI
 from classes.process import Process
 from activities.crear_proyecto import iniciar_proyecto
+from activities.completar_actividad_siguiente import marcar_proyecto_como_completado as bonita_marcar_como_completado
 
 formulario_bp = Blueprint('formulario', __name__)
 
@@ -53,8 +54,8 @@ def formulario_nombre():
         except Exception as e:
             flash(f"Error: {str(e)}", "error")
             return redirect(url_for('formulario.formulario_nombre'))
-
-    return render_template('formulario_nombre.html')
+    case_id = request.args.get('case_id')
+    return render_template('formulario_nombre.html', case_id=case_id)
 
 
 # ---------------------------------------------------------------------
@@ -94,3 +95,20 @@ def ver_proyectos():
     proyectos = proyecto_service.obtener_proyectos()
     case_id = request.args.get('case_id')
     return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
+
+
+@formulario_bp.route('/marcar_como_completado/<int:proyecto_id>', methods=['POST'])
+def marcar_como_completado(proyecto_id):
+    case_id = request.form.get('case_id')
+    try:
+        proyecto_service.marcar_proyecto_como_completado(proyecto_id)
+        # ⭐ Llamada DIRECTA a Bonita (sin requests)
+        data = bonita_marcar_como_completado(case_id)
+        if data.get("success"):
+            flash('Proyecto marcado como completado correctamente.', 'success')
+        else:
+            flash(f'Error al completar proyecto: {data.get("error")}', 'error')
+    except Exception as e:
+        flash(f'Error de conexión: {str(e)}', 'error')
+
+    return redirect(url_for('formulario.ver_proyectos', case_id=case_id))

@@ -2,7 +2,8 @@
 
 import json
 from datetime import datetime
-from flask import session
+from flask import session, jsonify
+import time
 from classes.access import AccessAPI
 from classes.process import Process
 
@@ -43,27 +44,40 @@ def completar_tarea_por_nombre(process, case_id, nombre_tarea, bonita_username):
     return process.complete_activity(task_id)
 
 
+def completar_tarea_disponible(process, case_id):
+    """
+    Busca la tarea humana disponible para el case y la completa,
+    sin importar el nombre.
+    """
+    # Buscar actividades disponibles
+    activities = process.search_activity_by_case(case_id)
+    if not activities:
+        raise Exception(f"No hay tareas disponibles para el case {case_id}")
+
+    # Tomar la primera tarea disponible
+    task = activities[0]
+    task_id = task["id"]
+
+    # Asignar al usuario actual (Walter)
+    user = process.get_user_by_name("walter.bates")
+    process.assign_task(task_id, user["id"])
+
+    # Completar la tarea
+    process.complete_activity(task_id)
+
+    return {
+        "task_id": task_id,
+        "task_name": task.get("displayName"),
+        "technical_name": task.get("name")
+    }
+
+
 # =====================================================
 # ============  SERVICIOS PARA BONITA  ================
 # =====================================================
 
 
-# ----------------------------
-# Crear proyecto (primer tarea)
-# ----------------------------
-def crear_proyecto_bonita(nombre, proyecto_id):
-    process, bonita_username = get_process_from_session()
 
-    process_id = process.get_process_id_by_name("Proceso de generar proyecto")
-    instance = process.initiate(process_id)
-    case_id = instance.get("caseId")
-
-    process.set_variable_by_case(case_id, "nombre_proyecto", nombre, "java.lang.String")
-    process.set_variable_by_case(case_id, "proyecto_id", proyecto_id, "java.lang.Integer")
-
-    result = completar_tarea_por_nombre(process, case_id, "Cargar nombre proyecto", bonita_username)
-
-    return case_id
 
 
 
@@ -97,7 +111,7 @@ def cargar_etapa(case_id, nombre_etapa, fecha_inicio, fecha_fin, tipo_cobertura,
     if ultima_etapa:
         process.set_variable_by_case(case_id, "ultima_etapa", "true", "java.lang.Boolean")
 
-    result = completar_tarea_por_nombre(process, case_id, "Cargar etapa", bonita_username)
+    result = completar_tarea_disponible(process, case_id)
 
     etapa_cloud_id = process.wait_for_case_variable(case_id, "etapa_cloud_id")
 
@@ -113,19 +127,9 @@ def confirmar_proyecto(case_id, ultima_etapa):
     valor = "true" if ultima_etapa else "false"
     process.set_variable_by_case(case_id, "ultima_etapa", valor, "java.lang.Boolean")
 
-    return completar_tarea_por_nombre(process, case_id, "Confirmar etapas", bonita_username)
+    return completar_tarea_disponible(process, case_id)
 
 
-# ----------------------------
-# Completar etapa (botón siguiente etapa)
-# ----------------------------
-def completar_etapa(case_id):
-    process, bonita_username = get_process_from_session()
-
-    return completar_tarea_por_nombre(process, case_id, "Completar etapa", bonita_username)
-
-
-# ----------------------------
 # Cargar donación
 # ----------------------------
 def cargar_donacion(case_id, etapa_id, donante_nombre, monto, especificacion):
@@ -155,7 +159,7 @@ def cargar_donacion(case_id, etapa_id, donante_nombre, monto, especificacion):
     donacion_json_str = json.dumps(donacion_data, ensure_ascii=False)
     process.set_variable_by_case(case_id, "donacion_data", donacion_json_str, "java.lang.String")
 
-    return completar_tarea_por_nombre(process, case_id, "Proponer donación", bonita_username)
+    return completar_tarea_disponible(process, case_id)
 
 
 # ----------------------------
@@ -166,7 +170,7 @@ def ver_propuestas(case_id, etapa_id):
 
     process.set_variable_by_case(case_id, "etapa_id_get", int(etapa_id), "java.lang.Integer")
 
-    completar_tarea_por_nombre(process, case_id, "Ver propuestas", bonita_username)
+    completar_tarea_disponible(process, case_id)
 
     propuestas_raw = process.wait_for_case_variable(case_id, "propuestas_por_etapa")
 
@@ -181,8 +185,62 @@ def aceptar_propuesta(case_id, propuesta_id):
 
     process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
 
-    completar_tarea_por_nombre(process, case_id, "Aceptar propuesta", bonita_username)
+    completar_tarea_disponible(process, case_id)
 
     cobertura_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
 
     return json.loads(cobertura_raw)
+
+
+def completar_etapa(case_id, etapa_id, ultima_propuesta):
+    try:
+        process, bonita_username = get_process_from_session()
+
+        if ultima_propuesta == 'true':
+            if isinstance(ultima_propuesta, str):
+                 ultima_propuesta = ultima_propuesta.lower() == "true"
+            process.set_variable_by_case(case_id, "ultima_propuesta", "true", "java.lang.Boolean")
+
+        primera = completar_tarea_disponible(process, case_id)
+        # 2️⃣ Esperar que Bonita cree "Completar etapa"
+        time.sleep(0.3)
+
+        # 3️⃣ Completar "Completar etapa"
+        process.set_variable_by_case(case_id, "etapa_a_completar_id", int(etapa_id), "java.lang.Integer")
+        segunda = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": segunda})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+
+
+def esperar_tarea_disponible(process, case_id, intentos=10, delay=0.2):
+    for _ in range(intentos):
+        tareas = process.search_activity_by_case(case_id)
+        if tareas:
+            return tareas[0]
+        time.sleep(delay)
+    return None
+
+def marcar_proyecto_como_completado(case_id):
+    try:
+        process, bonita_username = get_process_from_session()
+        process.set_variable_by_case(case_id, "ultima_etapa_a_completar", "true", "java.lang.Boolean")
+
+
+        primera = completar_tarea_disponible(process, case_id)
+
+        # 2️⃣ Esperar que Bonita cree "Completar etapa"
+        time.sleep(0.3)
+
+        # 3️⃣ Completar "Completar etapa"
+        segunda = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": segunda})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+
