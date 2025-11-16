@@ -3,17 +3,21 @@ from classes.process import Process
 from flask import session
 
 
+from classes.access import AccessAPI
+from classes.process import Process
+from flask import session
+
+
 def iniciar_proyecto(nombre_proyecto):
     """
-    Inicia un proceso en Bonita, asigna la tarea inicial y la completa.
-    Devuelve el case_id del proceso.
+    Inicia un proceso en Bonita y completa la tarea inicial
+    SIN asignación manual. Bonita valida el actor.
     """
 
     # Recuperar cookies Bonita de Flask
     bonita_cookies = session.get("bonita_cookies")
-    bonita_username = session.get("bonita_username")
 
-    if not bonita_cookies or not bonita_username:
+    if not bonita_cookies:
         raise Exception("Usuario Bonita no logueado")
 
     # Reconstruir sesión Bonita
@@ -29,14 +33,23 @@ def iniciar_proyecto(nombre_proyecto):
 
     # 3️⃣ Buscar tarea inicial
     activities = process.search_activity_by_case(case_id)
+    if not activities:
+        raise Exception("No se encontró la tarea inicial del proceso")
+
     task_id = activities[0]["id"]
 
-    # 4️⃣ Asignar tarea al usuario actual
-    bonita_user = process.get_user_by_name(bonita_username)
-    process.assign_task(task_id, bonita_user["id"])
+    # 4️⃣ NO ASIGNAR MANUALMENTE → Bonita valida actor automáticamente
+    #    process.assign_task(task_id, ... )  ❌ ELIMINADO
 
     # 5️⃣ Enviar variable y completar tarea
-    process.set_variable_by_case(case_id, "nombre_proyecto", nombre_proyecto, "java.lang.String")
-    process.complete_activity(task_id)
+    process.set_variable_by_case(
+        case_id,
+        "nombre_proyecto",
+        nombre_proyecto,
+        "java.lang.String"
+    )
+
+    # ✔ Bonita solo permitirá completar si el usuario pertenece al Actor correcto
+    result = process.complete_activity(task_id)
 
     return case_id

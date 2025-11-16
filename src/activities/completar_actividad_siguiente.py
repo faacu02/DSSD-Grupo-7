@@ -13,20 +13,18 @@ from classes.process import Process
 # ============================
 def get_process_from_session():
     bonita_cookies = session.get("bonita_cookies")
-    bonita_username = session.get("bonita_username")
 
-    if not bonita_cookies or not bonita_username:
+    if not bonita_cookies:
         raise Exception("Usuario Bonita no logueado.")
 
     bonita_session = AccessAPI.build_session_from_cookies(bonita_cookies)
-
-    return Process(bonita_session), bonita_username
+    return Process(bonita_session)
 
 
 # ============================
 #  COMPLETAR TAREA POR NOMBRE
 # ============================
-def completar_tarea_por_nombre(process, case_id, nombre_tarea, bonita_username):
+def completar_tarea_por_nombre(process, case_id, nombre_tarea):
     activities = process.search_activity_by_case(case_id)
 
     task_id = None
@@ -38,9 +36,11 @@ def completar_tarea_por_nombre(process, case_id, nombre_tarea, bonita_username):
     if not task_id:
         raise Exception(f"No se encontró la tarea '{nombre_tarea}' en el case {case_id}")
 
-    user = process.get_user_by_name(bonita_username)
-    process.assign_task(task_id, user["id"])
+    # ❌ NO asignar manualmente, Bonita lo hace según ACTOR
+    # user = process.get_user_by_name(bonita_username)
+    # process.assign_task(task_id, user["id"])
 
+    # ✔ Completar directamente con la sesión del usuario real
     return process.complete_activity(task_id)
 
 
@@ -85,7 +85,7 @@ def completar_tarea_disponible(process, case_id):
 # Cargar etapa
 # ----------------------------
 def cargar_etapa(case_id, nombre_etapa, fecha_inicio, fecha_fin, tipo_cobertura, cobertura_solicitada, ultima_etapa):
-    process, bonita_username = get_process_from_session()
+    process = get_process_from_session()
 
     if isinstance(cobertura_solicitada, str):
         try:
@@ -122,7 +122,7 @@ def cargar_etapa(case_id, nombre_etapa, fecha_inicio, fecha_fin, tipo_cobertura,
 # Confirmar proyecto
 # ----------------------------
 def confirmar_proyecto(case_id, ultima_etapa):
-    process, bonita_username = get_process_from_session()
+    process = get_process_from_session()
 
     valor = "true" if ultima_etapa else "false"
     process.set_variable_by_case(case_id, "ultima_etapa", valor, "java.lang.Boolean")
@@ -133,7 +133,7 @@ def confirmar_proyecto(case_id, ultima_etapa):
 # Cargar donación
 # ----------------------------
 def cargar_donacion(case_id, etapa_id, donante_nombre, monto, especificacion):
-    process, bonita_username = get_process_from_session()
+    process = get_process_from_session()
 
     try:
         monto_float = float(monto) if monto else None
@@ -166,7 +166,7 @@ def cargar_donacion(case_id, etapa_id, donante_nombre, monto, especificacion):
 # Ver propuestas por etapa
 # ----------------------------
 def ver_propuestas(case_id, etapa_id):
-    process, bonita_username = get_process_from_session()
+    process = get_process_from_session()
 
     process.set_variable_by_case(case_id, "etapa_id_get", int(etapa_id), "java.lang.Integer")
 
@@ -181,7 +181,7 @@ def ver_propuestas(case_id, etapa_id):
 # Aceptar propuesta
 # ----------------------------
 def aceptar_propuesta(case_id, propuesta_id):
-    process, bonita_username = get_process_from_session()
+    process = get_process_from_session()
 
     process.set_variable_by_case(case_id, "propuesta_aceptar_id", int(propuesta_id), "java.lang.Integer")
 
