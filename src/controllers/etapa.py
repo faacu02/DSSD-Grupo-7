@@ -116,3 +116,10 @@ def ver_etapas_ong_originante(proyecto_id):
     proyecto = None
     return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
 
+@etapa_bp.route('/proyectos_completados/ver_etapas/<int:proyecto_id>', methods=['GET'])
+def ver_etapas_proyecto_completado(proyecto_id):
+    case_id = request.args.get('case_id')
+
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    proyecto = None
+    return render_template('ver_etapas_nuevo.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
