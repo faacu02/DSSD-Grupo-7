@@ -1,0 +1,51 @@
+{% macro pretty_json(value) %}
+
+    {# Intentar parsear JSON si es string #}
+    {% if value is string %}
+        {% set parsed = value | to_json %}
+    {% else %}
+        {% set parsed = value %}
+    {% endif %}
+
+    {# Caso dict #}
+    {% if parsed is mapping %}
+        <ul class="list-group json-clean">
+            {% for key, val in parsed.items() %}
+                <li class="list-group-item px-2 py-1">
+                    <strong class="text-capitalize">{{ key }}:</strong>
+                    {% if val is sequence and not val is string %}
+                        {{ val | join(", ") }}
+                    {% else %}
+                        {{ val }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+    {# Caso lista #}
+    {% elif parsed is sequence and not parsed is string %}
+        <ul class="list-group json-clean">
+            {% for elem in parsed %}
+                {% if elem is mapping %}
+                    {% for k, v in elem.items() %}
+                        <li class="list-group-item px-2 py-1">
+                            <strong class="text-capitalize">{{ k }}:</strong>
+                            {% if v is sequence and not v is string %}
+                                {{ v | join(", ") }}
+                            {% else %}
+                                {{ v }}
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <li class="list-group-item px-2 py-1">{{ elem }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+
+    {# Caso string simple #}
+    {% else %}
+        <span class="json-clean">{{ value }}</span>
+    {% endif %}
+
+{% endmacro %}

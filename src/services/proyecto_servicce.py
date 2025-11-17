@@ -18,3 +18,6 @@ def marcar_proyecto_como_completado(proyecto_id):
         return proyecto
     else:
         raise ValueError("Proyecto no encontrado")
+    
+def obtener_proyecto_por_id(proyecto_id):
+    return Proyecto.query.get(proyecto_id)
