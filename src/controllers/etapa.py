@@ -98,16 +98,6 @@ def ver_etapas_proyecto(proyecto_id):
                            proyecto_id=proyecto_id)
 
 
-@etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
-def ver_etapas_ong_originante(proyecto_id):
-    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
-    case_id = request.args.get("case_id")
-    proyecto = None
-    return render_template('ver_etapas_ong_originante.html',
-                           etapas=etapas,
-                           case_id=case_id,
-                           proyecto=proyecto)
-
 
 # ==================================================================
 #  DETALLE DE ETAPA

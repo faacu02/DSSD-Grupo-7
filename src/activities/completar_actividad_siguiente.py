@@ -194,7 +194,7 @@ def aceptar_propuesta(case_id, propuesta_id):
 
 def completar_etapa(case_id, etapa_id, ultima_propuesta):
     try:
-        process, bonita_username = get_process_from_session()
+        process = get_process_from_session()
 
         if ultima_propuesta == 'true':
             if isinstance(ultima_propuesta, str):
@@ -226,7 +226,7 @@ def esperar_tarea_disponible(process, case_id, intentos=10, delay=0.2):
 
 def marcar_proyecto_como_completado(case_id):
     try:
-        process, bonita_username = get_process_from_session()
+        process = get_process_from_session()
         process.set_variable_by_case(case_id, "ultima_etapa_a_completar", "true", "java.lang.Boolean")
 
 
