@@ -147,5 +147,14 @@ def completar_etapa(etapa_id):
         return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
     bonita_completar_etapa(case_id, etapa.etapa_cloud_id, ultima_propuesta) 
     etapas= etapa_service.obtener_etapas_por_proyecto(etapa.proyecto_id)
+    proyecto = proyecto_service.obtener_proyecto_por_id(etapa.proyecto_id)
+    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto,case_id=case_id)
 
-    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=None,case_id=case_id)
+@etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
+def ver_etapas_ong_originante(proyecto_id):
+    case_id = request.args.get('case_id')
+
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    proyecto = proyecto_service.obtener_proyecto_por_id(proyecto_id)
+    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
+

@@ -7,7 +7,7 @@ import time
 from classes.access import AccessAPI
 from classes.process import Process
 
-
+import random
 # ============================
 #  RECONSTRUIR SESSION DE BONITA
 # ============================
@@ -101,7 +101,7 @@ def cargar_etapa(case_id, nombre_etapa, fecha_inicio, fecha_fin, tipo_cobertura,
         "fecha_inicio": fecha_inicio,
         "fecha_fin": fecha_fin,
         "tipo_cobertura": tipo_cobertura,
-        "proyecto_id": 1,
+        "proyecto_id": random.randint(1, 3),
         "cobertura_solicitada": cobertura_solicitada
     }
 
