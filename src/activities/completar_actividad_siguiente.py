@@ -53,6 +53,7 @@ def completar_tarea_disponible(process, case_id):
     activities = process.search_activity_by_case(case_id)
     if not activities:
         raise Exception(f"No hay tareas disponibles para el case {case_id}")
+    print("tareas disponibles:", activities)
 
     # Tomar la primera tarea disponible
     task = activities[0]
@@ -258,6 +259,23 @@ def cargar_observacion(case_id, etapa_id, observacion):
         resultado = completar_tarea_disponible(process, case_id)
 
         return jsonify({"success": True, "result": resultado})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+
+def obtener_observaciones_por_etapa(case_id, etapa_id):
+    try:
+        process = get_process_from_session()
+        process.set_variable_by_case(case_id, "etapa_id_get_observaciones", int(etapa_id), "java.lang.Integer")
+
+        completar_tarea_disponible(process, case_id)
+
+        observaciones_raw = process.wait_for_case_variable(case_id, "observaciones_de_etapa")
+
+        observaciones = json.loads(observaciones_raw)
+
+        return jsonify({"success": True, "observaciones": observaciones})
     except Exception as e:
         import traceback
         print(traceback.format_exc())
