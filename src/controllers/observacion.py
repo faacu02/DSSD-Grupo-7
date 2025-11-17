@@ -1,0 +1,22 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from classes.access import AccessAPI
+from activities.completar_actividad_siguiente import cargar_observacion as bonita_cargar_observacion
+from services.etapa_service import obtener_etapa_por_id
+observacion_bp = Blueprint('observacion', __name__)
+
+@observacion_bp.route('/cargar_observacion', methods=['GET', 'POST'])
+def cargar_observacion():
+    etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
+    case_id = request.args.get("case_id") or request.form.get("case_id")
+    etapa= obtener_etapa_por_id(etapa_id)
+    if request.method == "POST":
+        observacion = request.form.get("observacion")
+
+        bonita_cargar_observacion(case_id, etapa.etapa_cloud_id, observacion)
+
+        flash("Observación cargada correctamente", "success")
+        return redirect(url_for("formulario.index"))
+
+    return render_template("cargar_observacion.html",
+                           etapa_id=etapa_id,
+                           case_id=case_id)

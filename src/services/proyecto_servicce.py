@@ -22,3 +22,6 @@ def marcar_proyecto_como_completado(proyecto_id):
     
 def obtener_proyecto_por_id(proyecto_id):
     return Proyecto.query.get(proyecto_id)
+
+def obtener_proyectos_completados():
+    return Proyecto.query.filter_by(completado=True).all()
