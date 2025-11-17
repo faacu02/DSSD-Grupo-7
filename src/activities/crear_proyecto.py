@@ -30,6 +30,7 @@ def iniciar_proyecto(nombre_proyecto):
     # 2️⃣ Iniciar caso
     instance = process.initiate(process_id)
     case_id = instance["caseId"]
+    print(f"✅ Proceso iniciado con case ID: {case_id}")
 
     # 3️⃣ Buscar tarea inicial
     import time
@@ -49,12 +50,14 @@ def iniciar_proyecto(nombre_proyecto):
     #    process.assign_task(task_id, ... )  ❌ ELIMINADO
 
     # 5️⃣ Enviar variable y completar tarea
+    print(f"✅ Completando tarea inicial ID: {task_id} con nombre_proyecto='{nombre_proyecto}'")
     process.set_variable_by_case(
         case_id,
         "nombre_proyecto",
         nombre_proyecto,
         "java.lang.String"
     )
+    print("Variable 'nombre_proyecto' establecida.")
     user = process.get_user_by_name(session.get("bonita_username"))
     print("Usuario para completar tarea:", user)
     # ✔ Bonita solo permitirá completar si el usuario pertenece al Actor correcto

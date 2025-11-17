@@ -59,7 +59,7 @@ def completar_tarea_disponible(process, case_id):
     task_id = task["id"]
 
     # Asignar al usuario actual (Walter)
-    user = process.get_user_by_name("walter.bates")
+    user = process.get_user_by_name(session.get("bonita_username"))
     process.assign_task(task_id, user["id"])
 
     # Completar la tarea
