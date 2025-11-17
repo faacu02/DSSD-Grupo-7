@@ -3,7 +3,7 @@ import services.proyecto_servicce as proyecto_service
 from datetime import datetime
 from classes.access import AccessAPI
 from classes.process import Process
-from activities.crear_proyecto import iniciar_proyecto
+from activities.crear_proyecto import iniciar_proyecto, iniciar_proyecto_en_curso
 from activities.completar_actividad_siguiente import marcar_proyecto_como_completado as bonita_marcar_como_completado
 
 formulario_bp = Blueprint('formulario', __name__)
@@ -112,3 +112,30 @@ def marcar_como_completado(proyecto_id):
         flash(f'Error de conexión: {str(e)}', 'error')
 
     return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
+
+@formulario_bp.route('/completados', methods=['GET'])
+def ver_proyectos_completados():
+    try:
+        case_id = request.args.get('case_id')
+        proyectos = proyecto_service.obtener_proyectos_completados()
+
+        return render_template('ver_proyectos_completados.html',
+                               proyectos=proyectos,
+                               case_id=case_id)
+
+    except Exception as e:
+        flash(f"Error al cargar proyectos completados: {str(e)}", "error")
+        return redirect(url_for('formulario.index'))
+
+@formulario_bp.route('/iniciar_proceso_completados')
+def iniciar_proceso_completados():
+    try:
+        case_id = iniciar_proyecto_en_curso()
+
+        # Redirigís al portal o a la bandeja local
+        return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id))
+
+    except Exception as e:
+        print("exception", str(e))
+        flash(f"Error iniciando proceso en Bonita: {str(e)}", "error")
+        return redirect(url_for('formulario.index'))

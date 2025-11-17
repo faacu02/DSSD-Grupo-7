@@ -65,11 +65,13 @@
                             <i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
                             <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                         </a>
                     </li>
+                    
                 </ul>
             </div>
         </div>
@@ -89,16 +91,25 @@
                             Gestiona y planifica tus proyectos de manera eficiente. 
                             Organiza etapas, recursos y coberturas en un solo lugar.
                         </p>
-                        <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
-                            <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-light btn-hero">
-                                <i class="fas fa-rocket me-2"></i>
-                                Crear Nuevo Proyecto
-                            </a>
-                            <button class="btn btn-outline-light btn-hero" data-bs-toggle="modal" data-bs-target="#infoModal">
-                                <i class="fas fa-info-circle me-2"></i>
-                                Más Información
-                            </button>
-                        </div>
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-light btn-hero">
+                        <i class="fas fa-rocket me-2"></i>
+                        Crear Nuevo Proyecto
+                    </a>
+
+                    <button class="btn btn-outline-light btn-hero" data-bs-toggle="modal" data-bs-target="#infoModal">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Más Información
+                    </button>
+
+                    <a href="{{ url_for('formulario.iniciar_proceso_completados') }}"
+                    class="btn btn-light btn-hero">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Ver Proyectos Completados
+                    </a>
+
+                </div>
+
                     </div>
                 </div>
                 <div class="col-lg-6">

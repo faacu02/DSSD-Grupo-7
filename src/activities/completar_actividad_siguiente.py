@@ -244,3 +244,21 @@ def marcar_proyecto_como_completado(case_id):
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
 
+def cargar_observacion(case_id, etapa_id, observacion):
+    try:
+        process = get_process_from_session()
+        observacion = {
+            "etapa_id": etapa_id,
+            "descripcion": observacion
+        }
+
+        observacion_json_str = json.dumps(observacion, ensure_ascii=False)
+        process.set_variable_by_case(case_id, "observacion_data", observacion_json_str, "java.lang.String")
+
+        resultado = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": resultado})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
