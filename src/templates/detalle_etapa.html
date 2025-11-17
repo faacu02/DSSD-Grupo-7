@@ -4,21 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle de la Etapa</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
         .navbar-custom { background: rgba(255,255,255,0.95); backdrop-filter: blur(6px); }
         .card-hero { box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
         .field-label { font-weight: 600; color: #495057; }
+        .json-clean { font-size: 0.9rem; }
     </style>
 </head>
+
 <body class="bg-light">
+
+    <!-- IMPORTAMOS EL MACRO GLOBAL -->
+    {% import "macros.html" as macros %}
+
     <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
         <div class="container">
             <a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
                 <i class="fas fa-project-diagram me-2"></i>ProjectPlanning
             </a>
-            <div class="collapse navbar-collapse" id="navbarNav">
+
+            <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('formulario.formulario_nombre') }}">
@@ -35,27 +44,32 @@
         </div>
     </nav>
 
+    <!-- CONTENIDO -->
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
+
                 <div class="card card-hero shadow-sm">
+
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Detalle de la Etapa</h5>
-                        <div>
-                            <button class="btn btn-outline-light btn-sm" onclick="history.back()">
-                                <i class="fas fa-arrow-left me-1"></i>Volver
-                            </button>
-                        </div>
+                        <button class="btn btn-outline-light btn-sm" onclick="history.back()">
+                            <i class="fas fa-arrow-left me-1"></i>Volver
+                        </button>
                     </div>
+
                     <div class="card-body">
+
                         <div class="mb-4">
-                            <h4 class="fw-bold">{{ etapa.nombre or 'Etapa sin nombre' }}</h4>
+                            <h4 class="fw-bold">{{ etapa.nombre }}</h4>
+
                             {% if proyecto and proyecto.nombre %}
                                 <p class="text-muted mb-0">Proyecto: <strong>{{ proyecto.nombre }}</strong></p>
                             {% endif %}
                         </div>
 
                         <dl class="row">
+
                             <dt class="col-sm-4 field-label">Tipo de cobertura</dt>
                             <dd class="col-sm-8">{{ etapa.tipo_cobertura or '-' }}</dd>
 
@@ -65,76 +79,48 @@
                             <dt class="col-sm-4 field-label">Fecha de fin</dt>
                             <dd class="col-sm-8">{{ etapa.fecha_fin or '-' }}</dd>
 
+                            <!-- Cobertura Solicitada -->
                             <dt class="col-sm-4 field-label">Cobertura solicitada</dt>
                             <dd class="col-sm-8">
-                                {% if etapa.cobertura_solicitada is mapping %}
-                                    <ul class="list-group">
-                                        {% for k, v in etapa.cobertura_solicitada.items() %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <div class="fw-bold text-capitalize">{{ k }}</div>
-                                                    <small class="text-muted">{{ v|join(', ') if v is sequence and not v is string else v }}</small>
-                                                </div>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% elif etapa.cobertura_solicitada is sequence and not etapa.cobertura_solicitada is string %}
-                                    <ul class="list-group">
-                                        {% for item in etapa.cobertura_solicitada %}
-                                            <li class="list-group-item">{{ item }}</li>
-                                        {% endfor %}
-                                    </ul>
+                                {% if etapa.cobertura_solicitada %}
+                                    {{ macros.pretty_json(etapa.cobertura_solicitada) }}
                                 {% else %}
-                                    <pre class="bg-light p-2 rounded">{{ etapa.cobertura_solicitada or '-' }}</pre>
+                                    -
                                 {% endif %}
                             </dd>
 
-                        <dt class="col-sm-4 field-label">Cobertura actual</dt>
+                            <!-- Cobertura Actual -->
+                            <dt class="col-sm-4 field-label">Cobertura actual</dt>
                             <dd class="col-sm-8">
-                                {% if etapa.cobertura_actual is mapping %}
-                                    <ul class="list-group">
-                                        {% for k, v in etapa.cobertura_actual.items() %}
-                                            <li class="list-group-item d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <div class="fw-bold text-capitalize">{{ k }}</div>
-                                                    <small class="text-muted">{{ v|join(', ') if v is sequence and not v is string else v }}</small>
-                                                </div>
-                                            </li>
-                                        {% endfor %}
-                                    </ul>
-                                {% elif etapa.cobertura_actual is sequence and not etapa.cobertura_actual is string %}
-                                    <ul class="list-group">
-                                        {% for item in etapa.cobertura_actual %}
-                                            <li class="list-group-item">{{ item }}</li>
-                                        {% endfor %}
-                                    </ul>
+                                {% if etapa.cobertura_actual %}
+                                    {{ macros.pretty_json(etapa.cobertura_actual) }}
                                 {% else %}
-                                    <pre class="bg-light p-2 rounded">{{ etapa.cobertura_actual or '-' }}</pre>
+                                    -
                                 {% endif %}
                             </dd>
+
                         </dl>
-  
+
                         <div class="d-flex gap-2 mt-4">
                             <button class="btn btn-secondary" onclick="history.back()">
                                 <i class="fas fa-arrow-left me-1"></i>Volver
                             </button>
-                            <a href="{{ url_for('donacion.cargar_donacion', etapa_id=etapa.id, case_id=case_id, etapa_cloud_id=etapa_cloud_id) }}" class="btn btn-success">
+
+                            <a href="{{ url_for('donacion.cargar_donacion',
+                                                etapa_id=etapa.id,
+                                                case_id=case_id,
+                                                etapa_cloud_id=etapa_cloud_id) }}"
+                               class="btn btn-success">
                                 <i class="fas fa-hand-holding-heart me-1"></i>Proponer Donación
                             </a>
-                                    <a href="{{ url_for('etapa.completar_etapa',
-                            etapa_id=etapa.id,
-                            case_id=case_id,
-                            ultima_propuesta='true') }}"
-        class="btn btn-primary">
-            <i class="fas fa-flag-checkered me-1"></i> Finalizar Propuestas
-        </a>
                         </div>
+
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

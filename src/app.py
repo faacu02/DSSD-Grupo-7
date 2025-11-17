@@ -7,6 +7,7 @@ from controllers.login import login_bp
 from db import db  
 from controllers.etapa import etapa_bp
 from controllers.donacion import donacion_bp
+import json
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Necesario para los mensajes flash
@@ -32,3 +33,11 @@ app.register_blueprint(donacion_bp, url_prefix='/donacion')
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+@app.template_filter("to_json")
+def to_json_filter(value):
+    try:
+        return json.loads(value)
+    except:
+        return value

@@ -5,6 +5,7 @@ from classes.access import AccessAPI
 from datetime import datetime, time
 import json
 import time
+import random
 bonita_bp_siguiente = Blueprint("bonita_siguiente", __name__, url_prefix="/bonita")
 
 def to_timestamp(fecha_str):
@@ -58,7 +59,7 @@ def cargar_etapa():
             "fecha_inicio": fecha_inicio,
             "fecha_fin": fecha_fin,
             "tipo_cobertura": tipo_cobertura,
-            "proyecto_id": 1,
+            "proyecto_id": random.randint(1, 3),
             "cobertura_solicitada": cobertura_solicitada
         }
 
