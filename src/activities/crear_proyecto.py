@@ -32,6 +32,13 @@ def iniciar_proyecto(nombre_proyecto):
     case_id = instance["caseId"]
 
     # 3️⃣ Buscar tarea inicial
+    import time
+
+    for _ in range(5):
+        activities = process.search_activity_by_case(case_id)
+        if activities:
+            break 
+        time.sleep(0.2)
     activities = process.search_activity_by_case(case_id)
     if not activities:
         raise Exception("No se encontró la tarea inicial del proceso")
@@ -48,8 +55,10 @@ def iniciar_proyecto(nombre_proyecto):
         nombre_proyecto,
         "java.lang.String"
     )
-
+    user = process.get_user_by_name(session.get("bonita_username"))
+    print("Usuario para completar tarea:", user)
     # ✔ Bonita solo permitirá completar si el usuario pertenece al Actor correcto
+    process.assign_task(task_id, user["id"])
     result = process.complete_activity(task_id)
 
     return case_id
