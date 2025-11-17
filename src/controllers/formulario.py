@@ -1,24 +1,24 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-import requests
 import services.proyecto_servicce as proyecto_service
-import services.etapa_service as etapa_service
 from datetime import datetime
 from classes.access import AccessAPI
+from classes.process import Process
+from activities.crear_proyecto import iniciar_proyecto
+from activities.completar_actividad_siguiente import marcar_proyecto_como_completado as bonita_marcar_como_completado
 
 formulario_bp = Blueprint('formulario', __name__)
-
 
 
 @formulario_bp.route('/')
 def root():
     """Ruta raíz - redirige al login o al index según el estado de sesión"""
-    if session.get('logged'):
+    if session.get('bonita_username'):
         return redirect(url_for('formulario.index'))
     return redirect(url_for('login.login'))
 
+
 @formulario_bp.route('/index')
 def index():
-    """Página de inicio de ProjectPlanning"""
     return render_template('index.html')
 
 
@@ -28,77 +28,82 @@ def to_timestamp(fecha_str):
     dt = datetime.strptime(fecha_str, "%Y-%m-%d")
     return int(dt.timestamp() * 1000)
 
+
+# ---------------------------------------------------------------------
+# ⭐ OPCIÓN 1 → Sin requests internos, llamando a Bonita DIRECTO
+# ---------------------------------------------------------------------
 @formulario_bp.route('/formulario_nombre', methods=['GET', 'POST'])
 def formulario_nombre():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
-        if nombre:
-            try:
-                proyecto = proyecto_service.crear_proyecto(nombre)
-                response = requests.post(
-                    url_for('bonita.completar_actividad', _external=True),
-                    json={"nombre": nombre,"proyecto_id": proyecto.id}
-                )
-                data = response.json()
-                if data.get("success"):
-                    case_id = data["result"].get("caseId") if data.get("result") else None
-                    flash(f'Proyecto creado correctamente. Nombre: {nombre}', 'success')
-                    if case_id:
-                        return redirect(url_for('etapa.cargar_etapa', case_id=case_id, proyecto_id=proyecto.id))
-                    flash(f'Proyecto creado correctamente. Nombre: {nombre}', 'success')
-                else:
-                    flash(f'Error al crear proyecto: {data.get("error")}', 'error')
-            except Exception as e:
-                flash(f'Error de conexión: {str(e)}', 'error')
-            return redirect(url_for('formulario.formulario_nombre'))
-        else:
+
+        if not nombre:
             flash('Por favor, ingresa un nombre válido.', 'error')
+            return redirect(url_for('formulario.formulario_nombre'))
+
+        try:
+            # Crear proyecto local
+            proyecto = proyecto_service.crear_proyecto(nombre)
+
+            # ⭐ MODULARIZADO → llamar servicio Bonita
+            case_id = iniciar_proyecto(nombre)
+
+            flash(f"Proyecto creado correctamente: {nombre}", "success")
+            return redirect(url_for('etapa.cargar_etapa', case_id=case_id, proyecto_id=proyecto.id))
+
+        except Exception as e:
+            flash(f"Error: {str(e)}", "error")
+            return redirect(url_for('formulario.formulario_nombre'))
     case_id = request.args.get('case_id')
     return render_template('formulario_nombre.html', case_id=case_id)
 
 
+# ---------------------------------------------------------------------
+# ❗ En OPCIÓN 1, este endpoint NO usa requests internos.
+#    Lo reescribiremos cuando adaptemos bonito_siguiente.
+# ---------------------------------------------------------------------
 @formulario_bp.route('/confirmar_proyecto', methods=['GET', 'POST'])
 def confirmar_proyecto():
     case_id = request.args.get('case_id')
     proyecto_id = request.args.get('proyecto_id')
-    if request.method == 'POST':
-        try:
-            response = requests.post(
-                url_for('bonita_siguiente.confirmar_proyecto', _external=True),
-                json={"case_id": case_id, "ultima_etapa": True}
-            )
-            data = response.json()
-            if data.get("success"):
-                flash('Proyecto confirmado correctamente.', 'success')
-                return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
-            else:
-                flash(f'Error al confirmar: {data.get("error")}', 'error')
-        except Exception as e:
-            flash(f'Error de conexión: {str(e)}', 'error')
 
-    return render_template('confirmar_proyecto.html',
-                           case_id=case_id,
-                           proyecto_id=proyecto_id)
+    # 🔹 GET → solo mostrar la vista
+    if request.method == 'GET':
+        return render_template('confirmar_proyecto.html',
+                               case_id=case_id,
+                               proyecto_id=proyecto_id)
+
+    # 🔹 POST → Confirmar en Bonita (ahora SÍ)
+    ultima_etapa = True  # porque tu formulario ya lo sabe
+
+    try:
+        from activities.completar_actividad_siguiente import confirmar_proyecto as bonita_confirmar
+
+        bonita_confirmar(case_id, ultima_etapa)
+
+        flash('Proyecto confirmado correctamente.', 'success')
+
+        return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
+
+    except Exception as e:
+        flash(f"Error confirmando proyecto: {str(e)}", "error")
+        return redirect(request.url)
 
 
 @formulario_bp.route('/proyectos', methods=['GET'])
 def ver_proyectos():
-    case_id = request.args.get('case_id')
-
     proyectos = proyecto_service.obtener_proyectos()
-
+    case_id = request.args.get('case_id')
     return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
+
 
 @formulario_bp.route('/marcar_como_completado/<int:proyecto_id>', methods=['POST'])
 def marcar_como_completado(proyecto_id):
     case_id = request.form.get('case_id')
     try:
         proyecto_service.marcar_proyecto_como_completado(proyecto_id)
-        response = requests.post(
-            url_for('bonita_siguiente.marcar_proyecto_como_completado', _external=True),
-            json={"case_id": case_id}
-        )
-        data = response.json()
+        # ⭐ Llamada DIRECTA a Bonita (sin requests)
+        data = bonita_marcar_como_completado(case_id)
         if data.get("success"):
             flash('Proyecto marcado como completado correctamente.', 'success')
         else:

@@ -10,6 +10,7 @@ def crear_proyecto(nombre):
 def obtener_proyectos():
     return Proyecto.query.all()
 
+
 def marcar_proyecto_como_completado(proyecto_id):
     proyecto = Proyecto.query.get(proyecto_id)
     if proyecto:
