@@ -26,7 +26,7 @@ class AccessAPI:
         )
 
         if resp.status_code not in [200, 204]:
-            raise Exception(f"Error login Bonita: {resp.status_code} {resp.text}")
+            raise Exception(f"Credenciales incorrectas")
 
         print(f"✅ Login exitoso en Bonita como {user}")
         print("Cookies:", s.cookies.get_dict())
