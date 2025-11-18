@@ -430,3 +430,4 @@ class Process:
 
         print(f"[WARN] timeout esperando {varname} en case {case_id}")
         return None
+ 

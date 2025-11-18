@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from classes.access import AccessAPI
+from classes.process import Process
 
 login_bp = Blueprint('login', __name__)
 
@@ -14,13 +15,34 @@ def login():
             return render_template('login.html')
         
         try:
-            # Login en Bonita usando OPCIÓN 1
+            # Login en Bonita
             access_api = AccessAPI()
             bonita_session = access_api.login(username, password)
 
-            # Guardar datos en la sesión de Flask
+            # Guardar cookies
             session["bonita_username"] = username
             session["bonita_cookies"] = bonita_session.cookies.get_dict()
+
+            # Inicializar Process con la sesión correcta
+            process = Process(bonita_session)
+
+            # 🔥 Buscar el usuario por nombre
+            bonita_user = process.get_user_by_name(username)
+            if not bonita_user:
+                raise Exception("Usuario no encontrado en Bonita")
+
+            user_id = bonita_user.get("id")
+
+            # 🔥 Obtener roles por ID
+            roles = process.get_user_roles_names(user_id)
+
+            # Guardar en la session
+            session["bonita_roles"] = roles
+            session["bonita_user_id"] = user_id
+
+            print("Usuario:", username)
+            print("User ID:", user_id)
+            print("Roles:", roles)
 
             flash(f'¡Bienvenido {username}!', 'success')
             return redirect(url_for('formulario.index'))
@@ -30,6 +52,8 @@ def login():
             return render_template('login.html')
     
     return render_template('login.html')
+
+
 
 
 @login_bp.route('/logout')
