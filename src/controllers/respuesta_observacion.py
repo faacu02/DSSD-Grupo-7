@@ -4,13 +4,20 @@ from activities.completar_actividad_siguiente import crear_respuesta as bonita_c
 
 respuesta_bp = Blueprint('respuesta', __name__)
 
+@respuesta_bp.route('/crear_respuesta/<observacion_id>', methods=['GET', 'POST'])
 def crear_respuesta(observacion_id):
     case_id = request.args.get("case_id") or request.form.get("case_id")
 
     if request.method == "POST":
         respuesta_texto = request.form.get("respuesta")
 
-        bonita_crear_respuesta(case_id, observacion_id, respuesta_texto)
+        # Asegurarnos de pasar un entero cuando sea posible
+        try:
+            observacion_int = int(observacion_id)
+        except Exception:
+            observacion_int = observacion_id
+
+        bonita_crear_respuesta(case_id, observacion_int, respuesta_texto)
 
         flash("Respuesta creada correctamente", "success")
         return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id))

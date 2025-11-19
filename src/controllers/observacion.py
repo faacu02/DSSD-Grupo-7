@@ -62,15 +62,17 @@ def detalle_observacion(observacion_id):
 
 @observacion_bp.route('/resolver/<observacion_id>', methods=['POST'])
 def resolver(observacion_id):
-    case_id = session.get("case_id")
-    etapa_id = session.get("etapa_id")
+    case_id = request.form.get("case_id") or request.args.get("case_id")
+    etapa_id = request.form.get("etapa_id") or request.args.get("etapa_id")
     etapa = obtener_etapa_por_id(etapa_id)
-    observacion = session.get("observacion")
 
-    resolver_observacion(case_id, observacion_id)
+    response = resolver_observacion(case_id, observacion_id)
+
+    data = response.get_json()
+    observacion = data.get("observacion", [])
 
     flash("Observación resuelta correctamente", "success")
-    observacion.resuelta = True
+    
     return render_template(
         "detalle_observacion.html",
         etapa=etapa,

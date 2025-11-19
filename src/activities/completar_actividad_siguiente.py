@@ -303,9 +303,13 @@ def resolver_observacion(case_id, observacion_id):
         process = get_process_from_session()
         process.set_variable_by_case(case_id, "observacion_id_resolver", int(observacion_id), "java.lang.Integer")
 
-        resultado = completar_tarea_disponible(process, case_id)
+        completar_tarea_disponible(process, case_id)
 
-        return jsonify({"success": True, "result": resultado})
+        observacion_raw = process.wait_for_case_variable(case_id, "observacion_resuelta")
+
+        observacion = json.loads(observacion_raw)
+
+        return jsonify({"success": True, "observacion": observacion})
     except Exception as e:
         import traceback
         print(traceback.format_exc())
@@ -315,8 +319,14 @@ def resolver_observacion(case_id, observacion_id):
 def crear_respuesta(case_id, observacion_id, respuesta_texto):
     try:
         process = get_process_from_session()
+        # Asegurarnos que el ID de observación se envíe como entero
+        try:
+            observacion_int = int(observacion_id)
+        except Exception:
+            observacion_int = observacion_id
+
         respuesta = {
-            "observacion_id": observacion_id,
+            "observacion_id": observacion_int,
             "descripcion": respuesta_texto
         }
 
