@@ -113,12 +113,13 @@
                     <i class="fas fa-check-circle me-2"></i>
                     Ver Proyectos Completados
                     {% if 'interviniente' in roles_lower %}
-                    </a>
-                        <a href="{{ url_for('formulario.ver_proyectos', case_id = case_id) }}"
-                        class="btn btn-light btn-hero">
-                        <i class="fas fa-check-circle me-2"></i>
-                        Ver Proyectos en curso
-                    </a>
+                        </a>
+                            <a href="{{ url_for('formulario.ver_proyectos', case_id = case_id) }}"
+                            class="btn btn-light btn-hero">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Ver Proyectos en curso
+                        </a>
+                    {% endif %}
 
                 </div>
 
