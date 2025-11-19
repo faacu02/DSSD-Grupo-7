@@ -19,7 +19,8 @@ def root():
 
 @formulario_bp.route('/index')
 def index():
-    return render_template('index.html')
+    case_id = request.args.get('case_id')
+    return render_template('index.html', case_id=case_id)
 
 
 def to_timestamp(fecha_str):
