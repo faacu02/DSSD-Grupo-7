@@ -34,3 +34,8 @@ def actualizar_case_id(proyecto_id, case_id):
         return proyecto
     else:
         raise ValueError("Proyecto no encontrado")
+    
+    
+def devolver_case_id_por_proyecto_id():
+    ultimo = Proyecto.query.order_by(Proyecto.id.desc()).first()
+    return ultimo.case_id
