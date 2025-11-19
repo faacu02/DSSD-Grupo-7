@@ -20,10 +20,9 @@ def root():
 
 @formulario_bp.route('/index')
 def index():
+    case_id = request.args.get('case_id')
     session_roles= session.get("bonita_roles", [])
-    print("Roles en sesión:", session_roles)
-    return render_template('index.html', roles=session_roles)
-
+    return render_template('index.html', case_id=case_id, roles=session_roles)
 
 def to_timestamp(fecha_str):
     if not fecha_str:
