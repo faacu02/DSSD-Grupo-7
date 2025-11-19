@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import json
 
 import services.etapa_service as etapa_service
+import services.proyecto_servicce as proyecto_service
 
 # ⭐ Importamos servicios Bonita
 from activities.completar_actividad_siguiente import (
@@ -21,7 +22,7 @@ donacion_bp = Blueprint('donacion', __name__)
 @donacion_bp.route('/cargar_donacion', methods=['GET', 'POST'])
 @roles_required('Interviniente')
 def cargar_donacion():
-    case_id = request.args.get('case_id')
+    case_id = proyecto_service.devolver_case_id_por_proyecto_id()
     etapa_id = request.args.get('etapa_id')
 
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
