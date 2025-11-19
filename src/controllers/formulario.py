@@ -44,9 +44,12 @@ def formulario_nombre():
         try:
             # Crear proyecto local
             proyecto = proyecto_service.crear_proyecto(nombre)
+            id_proyecto = proyecto.id
 
             # ⭐ MODULARIZADO → llamar servicio Bonita
             case_id = iniciar_proyecto(nombre)
+            
+            proyecto_service.actualizar_case_id(id_proyecto, case_id)
 
             flash(f"Proyecto creado correctamente: {nombre}", "success")
             return redirect(url_for('etapa.cargar_etapa', case_id=case_id, proyecto_id=proyecto.id))
