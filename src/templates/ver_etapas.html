@@ -16,6 +16,8 @@
 </head>
 
 <body class="bg-light">
+	        {% set roles_lower = (roles|default([]))|map('lower')|list %}
+
 
 	<!-- NAVBAR -->
 	<nav class="navbar navbar-expand-lg navbar-light navbar-custom">
@@ -23,6 +25,8 @@
 			<a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
 				<i class="fas fa-project-diagram me-2"></i>ProjectPlanning
 			</a>
+			                    {% if 'originante' in roles_lower %}
+
 
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
@@ -31,7 +35,7 @@
 							<i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
 						</a>
 					</li>
-
+{% endif %}
 					<li class="nav-item">
 						<a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
 							<i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
@@ -58,6 +62,16 @@
 								- {{ proyecto.nombre }}
 							{% endif %}
 						</h5>
+						{% if 'originante' in roles_lower %}
+						<form method="POST"
+							      action="{{ url_for('formulario.marcar_como_completado', proyecto_id=proyecto.id) }}">
+								<input type="hidden" name="proyecto_id" value="{{ proyecto.id }}">
+								<input type="hidden" name="case_id" value="{{ case_id }}">
+								<button type="submit" class="btn btn-success btn-sm">
+									<i class="fas fa-check-circle me-1"></i>Completar proyecto
+								</button>
+							</form>
+						{% endif %}
 
 						<div class="d-flex gap-2">
 							<a href="{{ url_for('formulario.index') }}" class="btn btn-outline-light btn-sm">

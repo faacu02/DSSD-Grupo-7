@@ -5,6 +5,7 @@ from classes.access import AccessAPI
 from classes.process import Process
 from activities.crear_proyecto import iniciar_proyecto, iniciar_proyecto_en_curso
 from activities.completar_actividad_siguiente import marcar_proyecto_como_completado as bonita_marcar_como_completado
+from utils.hasRol import roles_required
 
 formulario_bp = Blueprint('formulario', __name__)
 
@@ -19,7 +20,9 @@ def root():
 
 @formulario_bp.route('/index')
 def index():
-    return render_template('index.html')
+    session_roles= session.get("bonita_roles", [])
+    print("Roles en sesión:", session_roles)
+    return render_template('index.html', roles=session_roles)
 
 
 def to_timestamp(fecha_str):
@@ -33,6 +36,7 @@ def to_timestamp(fecha_str):
 # ⭐ OPCIÓN 1 → Sin requests internos, llamando a Bonita DIRECTO
 # ---------------------------------------------------------------------
 @formulario_bp.route('/formulario_nombre', methods=['GET', 'POST'])
+@roles_required("Originante")
 def formulario_nombre():
     if request.method == 'POST':
         nombre = request.form.get('nombre')
@@ -63,6 +67,7 @@ def formulario_nombre():
 #    Lo reescribiremos cuando adaptemos bonito_siguiente.
 # ---------------------------------------------------------------------
 @formulario_bp.route('/confirmar_proyecto', methods=['GET', 'POST'])
+@roles_required("Originante")
 def confirmar_proyecto():
     case_id = request.args.get('case_id')
     proyecto_id = request.args.get('proyecto_id')
@@ -94,7 +99,8 @@ def confirmar_proyecto():
 def ver_proyectos():
     proyectos = proyecto_service.obtener_proyectos()
     case_id = request.args.get('case_id')
-    return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id)
+    roles = session.get("bonita_roles", [])
+    return render_template('ver_proyectos.html', proyectos=proyectos, case_id=case_id, roles=roles)
 
 
 @formulario_bp.route('/marcar_como_completado/<int:proyecto_id>', methods=['POST'])
