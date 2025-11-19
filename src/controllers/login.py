@@ -40,8 +40,10 @@ def login():
             # Guardar en la session
             session["bonita_roles"] = roles
             session["bonita_user_id"] = user_id
-            
-            case_id = proyecto_service.devolver_case_id_por_proyecto_id()
+            if proyecto_service.hay_proyectos():
+                case_id = proyecto_service.devolver_case_id_por_proyecto_id()
+            else:
+                case_id = None
             print("Usuario:", username)
             print("User ID:", user_id)
             print("Roles:", roles)

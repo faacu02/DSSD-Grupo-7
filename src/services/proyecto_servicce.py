@@ -39,3 +39,6 @@ def actualizar_case_id(proyecto_id, case_id):
 def devolver_case_id_por_proyecto_id():
     ultimo = Proyecto.query.order_by(Proyecto.id.desc()).first()
     return ultimo.case_id
+
+def hay_proyectos():
+    return Proyecto.query.count() > 0
