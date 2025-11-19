@@ -7,7 +7,7 @@ import services.proyecto_servicce as proyecto_service
 # ⭐ servicios Bonita
 from activities.completar_actividad_siguiente import cargar_etapa as bonita_cargar_etapa
 from activities.completar_actividad_siguiente import completar_etapa as bonita_completar_etapa
-
+from utils.hasRol import roles_required
 etapa_bp = Blueprint('etapa', __name__)
 
 
@@ -15,6 +15,7 @@ etapa_bp = Blueprint('etapa', __name__)
 #  CARGAR ETAPA  (YA SIN REQUESTS POST)
 # ==================================================================
 @etapa_bp.route('/completar_etapa', methods=['GET', 'POST'])
+@roles_required('Originante')
 def cargar_etapa():
     if request.method == 'POST':
 
@@ -87,15 +88,18 @@ def cargar_etapa():
 #  VER ETAPAS (ORIGINANTE / INTERVINIENTE)
 # ==================================================================
 @etapa_bp.route('/ver_etapas/<int:proyecto_id>', methods=['GET'])
+@roles_required('Originante', 'Interviniente')
 def ver_etapas_proyecto(proyecto_id):
     etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
     case_id = request.args.get("case_id")
-    proyecto = None
+    roles = session.get("bonita_roles", [])
+    proyecto = proyecto_service.obtener_proyecto_por_id(proyecto_id)
     return render_template('ver_etapas.html',
                            etapas=etapas,
                            case_id=case_id,
                            proyecto=proyecto,
-                           proyecto_id=proyecto_id)
+                           proyecto_id=proyecto_id,
+                           roles=roles)
 
 
 
@@ -103,6 +107,7 @@ def ver_etapas_proyecto(proyecto_id):
 #  DETALLE DE ETAPA
 # ==================================================================
 @etapa_bp.route('/detalle_etapa/<int:etapa_id>', methods=['GET'])
+@roles_required('Originante', 'Interviniente')
 def detalle_etapa(etapa_id):
     case_id = request.args.get('case_id')
     etapa_obj = etapa_service.obtener_etapa_por_id(etapa_id)
@@ -110,12 +115,13 @@ def detalle_etapa(etapa_id):
     if not etapa_obj:
         flash('Etapa no encontrada.', 'error')
         return redirect(url_for('formulario.ver_proyectos'))
-
+    roles= session.get("bonita_roles", [])
     return render_template(
         'detalle_etapa.html',
         etapa=etapa_obj,
         case_id=case_id,
-        etapa_cloud_id=etapa_obj.etapa_cloud_id
+        etapa_cloud_id=etapa_obj.etapa_cloud_id,
+        roles=roles
     )
 
 
@@ -127,6 +133,7 @@ def detalle_etapa(etapa_id):
 
 
 @etapa_bp.route('/completar/<int:etapa_id>', methods=['GET'])
+@roles_required('Originante')
 def completar_etapa(etapa_id):
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
     case_id = request.args.get('case_id')
@@ -138,7 +145,7 @@ def completar_etapa(etapa_id):
     bonita_completar_etapa(case_id, etapa.etapa_cloud_id, ultima_propuesta) 
     etapas= etapa_service.obtener_etapas_por_proyecto(etapa.proyecto_id)
     proyecto = proyecto_service.obtener_proyecto_por_id(etapa.proyecto_id)
-    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto,case_id=case_id)
+    return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto,case_id=case_id)
 
 @etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
 def ver_etapas_ong_originante(proyecto_id):

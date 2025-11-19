@@ -49,6 +49,7 @@
     </style>
 </head>
 <body>
+    {% set roles_lower = (roles|default([]))|map('lower')|list %}
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">
         <div class="container">
@@ -60,11 +61,13 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    {% if 'originante' in roles_lower %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('formulario.formulario_nombre') }}">
                             <i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
                         </a>
                     </li>
+                    {% endif %}
                     
                     <li class="nav-item">
                         <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
@@ -91,11 +94,14 @@
                             Gestiona y planifica tus proyectos de manera eficiente. 
                             Organiza etapas, recursos y coberturas en un solo lugar.
                         </p>
+                        
                 <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                    {% if 'originante' in roles_lower %}
                     <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-light btn-hero">
                         <i class="fas fa-rocket me-2"></i>
                         Crear Nuevo Proyecto
                     </a>
+                    {% endif %}
 
                     <button class="btn btn-outline-light btn-hero" data-bs-toggle="modal" data-bs-target="#infoModal">
                         <i class="fas fa-info-circle me-2"></i>
@@ -106,11 +112,12 @@
                     class="btn btn-light btn-hero">
                     <i class="fas fa-check-circle me-2"></i>
                     Ver Proyectos Completados
+                    {% if 'interviniente' in roles_lower %}
                     </a>
                         <a href="{{ url_for('formulario.ver_proyectos', case_id = case_id) }}"
                         class="btn btn-light btn-hero">
                         <i class="fas fa-check-circle me-2"></i>
-                        Ver Proyectos Completados
+                        Ver Proyectos en curso
                     </a>
 
                 </div>
@@ -182,6 +189,8 @@
     </section>
 
     <!-- Call to Action Section -->
+                         {% if 'originante' in roles_lower %}
+
     <section class="py-5 bg-primary text-white">
         <div class="container text-center">
             <div class="row justify-content-center">
@@ -200,6 +209,8 @@
             </div>
         </div>
     </section>
+                        {% endif %}
+
 
     <!-- Modal de Información -->
     <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
@@ -257,9 +268,11 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                         <i class="fas fa-times me-1"></i>Cerrar
                     </button>
+                    {% if 'originante' in roles_lower %}
                     <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-primary">
                         <i class="fas fa-rocket me-1"></i>Crear Proyecto
                     </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
