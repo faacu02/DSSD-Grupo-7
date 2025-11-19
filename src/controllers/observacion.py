@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from classes.access import AccessAPI
 from activities.completar_actividad_siguiente import cargar_observacion as bonita_cargar_observacion
 from activities.completar_actividad_siguiente import obtener_observaciones_por_etapa
+from activities.completar_actividad_siguiente import seleccionar_observacion
+from activities.completar_actividad_siguiente import resolver_observacion
 import json
 from services.etapa_service import obtener_etapa_por_id
 observacion_bp = Blueprint('observacion', __name__)
@@ -37,5 +39,41 @@ def ver_observaciones_por_etapa():
         "ver_observaciones.html",
         etapa=etapa,
         observaciones=observaciones,
+        case_id=case_id
+    )
+
+@observacion_bp.route('/detalle_observacion/<observacion_id>', methods=['GET'])
+def detalle_observacion(observacion_id):
+    case_id = request.args.get("case_id") or request.form.get("case_id")
+    etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
+    etapa = obtener_etapa_por_id(etapa_id)
+
+    response = seleccionar_observacion(case_id, observacion_id)
+
+    data = response.get_json()
+    observacion = data.get("observacion", [])
+
+    return render_template(
+        "detalle_observacion.html",
+        etapa=etapa,
+        observacion=observacion,
+        case_id=case_id
+    )
+
+@observacion_bp.route('/resolver/<observacion_id>', methods=['POST'])
+def resolver(observacion_id):
+    case_id = session.get("case_id")
+    etapa_id = session.get("etapa_id")
+    etapa = obtener_etapa_por_id(etapa_id)
+    observacion = session.get("observacion")
+
+    resolver_observacion(case_id, observacion_id)
+
+    flash("Observación resuelta correctamente", "success")
+    observacion.resuelta = True
+    return render_template(
+        "detalle_observacion.html",
+        etapa=etapa,
+        observacion=observacion,
         case_id=case_id
     )

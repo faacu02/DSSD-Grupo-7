@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de la Observación</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        .navbar-custom { background: rgba(255,255,255,0.95); backdrop-filter: blur(6px); }
+        .card-hero { box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+        .field-label { font-weight: 600; color: #495057; }
+    </style>
+</head>
+
+<body class="bg-light">
+
+    {% import "macros.html" as macros %}
+
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
+                <i class="fas fa-project-diagram me-2"></i>ProjectPlanning
+            </a>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('formulario.formulario_nombre') }}">
+                            <i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
+                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+
+                <div class="card card-hero shadow-sm">
+
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-comment-dots me-2"></i>Detalle de la Observación</h5>
+                        <button class="btn btn-outline-light btn-sm" onclick="history.back()">
+                            <i class="fas fa-arrow-left me-1"></i>Volver
+                        </button>
+                    </div>
+
+                    <div class="card-body">
+
+                        <div class="mb-4">
+                            <h4 class="fw-bold">Etapa: {{ etapa.nombre }}</h4>
+                        </div>
+
+                        <dl class="row">
+                            <dt class="col-sm-4 field-label">Descripción</dt>
+                            <dd class="col-sm-8">{{ observacion.descripcion or '-' }}</dd>
+
+                            <dt class="col-sm-4 field-label">Fecha de creación</dt>
+                            <dd class="col-sm-8">{{ observacion.fecha_creacion or '-' }}</dd>
+
+                            <dt class="col-sm-4 field-label">Fecha límite</dt>
+                            <dd class="col-sm-8">{{ observacion.fecha_limite or '-' }}</dd>
+
+                            <dt class="col-sm-4 field-label">Resuelta</dt>
+                            <dd class="col-sm-8">
+                                {% if observacion.resuelta %}
+                                    <span class="badge bg-success">Sí</span>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            </dd>
+                        </dl>
+
+                        <div class="mt-4">
+                            {% if not observacion.resuelta %}
+                                <form method="post" action="{{ url_for('observacion.resolver', observacion_id=observacion.id) }}">
+                                    <input type="hidden" name="case_id" value="{{ case_id }}">
+                                    <input type="hidden" name="etapa_id" value="{{ etapa.id }}">
+                                    <input type="hidden" name="observacion" value='{{ observacion|tojson }}'>
+
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check me-1"></i>Marcar como resuelta
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="get" action="{{ url_for('respuesta.crear_respuesta', observacion_id=observacion.id) }}">
+                                    <input type="hidden" name="case_id" value="{{ case_id }}">
+                                    <input type="hidden" name="etapa_id" value="{{ etapa.id }}">
+                                    <input type="hidden" name="observacion" value='{{ observacion|tojson }}'>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-check me-1"></i>Responder a la observación
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

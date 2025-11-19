@@ -280,3 +280,53 @@ def obtener_observaciones_por_etapa(case_id, etapa_id):
         import traceback
         print(traceback.format_exc())
         return jsonify({"success": False, "error": str(e)})
+    
+def seleccionar_observacion(case_id, observacion_id):
+    try:
+        process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_id_seleccionar", int(observacion_id), "java.lang.Integer")
+
+        completar_tarea_disponible(process, case_id)
+
+        observacion_raw = process.wait_for_case_variable(case_id, "observacion_seleccionada")
+
+        observacion = json.loads(observacion_raw)
+
+        return jsonify({"success": True, "observacion": observacion})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+def resolver_observacion(case_id, observacion_id):
+    try:
+        process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_id_resolver", int(observacion_id), "java.lang.Integer")
+
+        resultado = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": resultado})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
+    
+
+def crear_respuesta(case_id, observacion_id, respuesta_texto):
+    try:
+        process = get_process_from_session()
+        respuesta = {
+            "observacion_id": observacion_id,
+            "descripcion": respuesta_texto
+        }
+
+        respuesta_json_str = json.dumps(respuesta, ensure_ascii=False)
+        process.set_variable_by_case(case_id, "respuesta_data", respuesta_json_str, "java.lang.String")
+
+        resultado = completar_tarea_disponible(process, case_id)
+
+        return jsonify({"success": True, "result": resultado})
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({"success": False, "error": str(e)})
