@@ -111,7 +111,7 @@ def ver_etapas_proyecto(proyecto_id):
 def detalle_etapa(etapa_id):
     case_id = request.args.get('case_id')
     etapa_obj = etapa_service.obtener_etapa_por_id(etapa_id)
-
+    proyecto_id = request.args.get('proyecto_id')
     if not etapa_obj:
         flash('Etapa no encontrada.', 'error')
         return redirect(url_for('formulario.ver_proyectos'))
@@ -121,7 +121,8 @@ def detalle_etapa(etapa_id):
         etapa=etapa_obj,
         case_id=case_id,
         etapa_cloud_id=etapa_obj.etapa_cloud_id,
-        roles=roles
+        roles=roles,
+        proyecto_id=proyecto_id
     )
 
 
@@ -147,6 +148,7 @@ def completar_etapa(etapa_id):
     proyecto = proyecto_service.obtener_proyecto_por_id(etapa.proyecto_id)
     return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto,case_id=case_id)
 
+"""
 @etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
 def ver_etapas_ong_originante(proyecto_id):
     case_id = request.args.get('case_id')
@@ -155,3 +157,4 @@ def ver_etapas_ong_originante(proyecto_id):
     proyecto = proyecto_service.obtener_proyecto_por_id(proyecto_id)
     return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
 
+"""

@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 import json
 from activities.completar_actividad_siguiente import crear_respuesta as bonita_crear_respuesta
-
+from utils.hasRol import roles_required
 respuesta_bp = Blueprint('respuesta', __name__)
 
 @respuesta_bp.route('/crear_respuesta/<int:observacion_id>', methods=['GET', 'POST'])
+
+@roles_required('Originante')
 def crear_respuesta(observacion_id):
     case_id = request.args.get("case_id") or request.form.get("case_id")
 

@@ -101,6 +101,11 @@
                         <i class="fas fa-rocket me-2"></i>
                         Crear Nuevo Proyecto
                     </a>
+                    <a href="{{ url_for('formulario.ver_proyectos_completados') }}"
+                        class="btn btn-light btn-hero">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Ver Proyectos Completados
+                    </a>
                     {% endif %}
 
                     <button class="btn btn-outline-light btn-hero" data-bs-toggle="modal" data-bs-target="#infoModal">
@@ -108,12 +113,13 @@
                         Más Información
                     </button>
 
-                    <a href="{{ url_for('formulario.iniciar_proceso_completados') }}"
-                    class="btn btn-light btn-hero">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Ver Proyectos Completados
-                    </a>
+                    
                     {% if 'interviniente' in roles_lower %}
+                        <a href="{{ url_for('formulario.iniciar_proceso_completados') }}"
+                            class="btn btn-light btn-hero">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Ver Proyectos Completados
+                        </a>
                         </a>
                             <a href="{{ url_for('formulario.ver_proyectos', case_id = case_id) }}"
                             class="btn btn-light btn-hero">

@@ -42,3 +42,12 @@ def devolver_case_id_por_proyecto_id():
 
 def hay_proyectos():
     return Proyecto.query.count() > 0
+
+def set_case_id_obs(case_id, proyecto_id):
+    proyecto = Proyecto.query.get(proyecto_id)
+    if proyecto:
+        proyecto.case_id_obs = case_id
+        db.session.commit()
+        return proyecto
+    else:
+        raise ValueError("Proyecto no encontrado")

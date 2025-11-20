@@ -123,8 +123,14 @@ def marcar_como_completado(proyecto_id):
 
 @formulario_bp.route('/completados', methods=['GET'])
 def ver_proyectos_completados():
+    roles = session.get("bonita_roles", [])
+    is_originante = any(r.lower() == "originante" for r in roles)
+    is_interviniente = any(r.lower() == "interviniente" for r in roles)
     try:
-        case_id = request.args.get('case_id')
+        if is_interviniente:
+            case_id = request.args.get('case_id')
+        else:
+            case_id = None
         proyectos = proyecto_service.obtener_proyectos_completados()
 
         return render_template('ver_proyectos_completados.html',

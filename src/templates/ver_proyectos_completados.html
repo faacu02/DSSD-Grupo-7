@@ -73,7 +73,7 @@
                                    class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-layer-group me-1"></i> Ver etapas ong interviniente
                                 </a>
-                                    <a href="{{ url_for('etapa.ver_etapas_ong_originante', proyecto_id=proyecto.id, case_id=request.args.get('case_id')) }}"
+                                <a href="{{ url_for('etapa.ver_etapas_proyecto', proyecto_id=proyecto.id, case_id=request.args.get('case_id')) }}"
                                     class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-layer-group me-1"></i>Ver etapas ong originante
                                 </a>
