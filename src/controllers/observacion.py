@@ -6,9 +6,11 @@ from activities.completar_actividad_siguiente import seleccionar_observacion
 from activities.completar_actividad_siguiente import resolver_observacion
 import json
 from services.etapa_service import obtener_etapa_por_id
+from utils.hasRol import roles_required
 observacion_bp = Blueprint('observacion', __name__)
 
 @observacion_bp.route('/cargar_observacion', methods=['GET', 'POST'])
+@roles_required('Interviniente')
 def cargar_observacion():
     etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
     case_id = request.args.get("case_id") or request.form.get("case_id")
@@ -26,6 +28,7 @@ def cargar_observacion():
                            case_id=case_id)
 
 @observacion_bp.route('/ver_observaciones/', methods=['GET'])
+@roles_required('Originante')
 def ver_observaciones_por_etapa():
     etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
     case_id = request.args.get("case_id") or request.form.get("case_id")

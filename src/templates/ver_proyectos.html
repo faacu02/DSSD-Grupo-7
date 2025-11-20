@@ -13,6 +13,7 @@
     </style>
 </head>
 <body class="bg-light">
+    
     <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
         <div class="container">
             <a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
@@ -58,10 +59,6 @@
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <small class="text-muted">ID: {{ proyecto.id }}</small>
                                     <a href="{{ url_for('etapa.ver_etapas_proyecto', proyecto_id=proyecto.id, case_id=request.args.get('case_id')) }}"
-                                        class="btn btn-sm btn-outline-primary">
-                                     <i class="fas fa-layer-group me-1"></i>Ver etapas
-                                    </a>
-                                        <a href="{{ url_for('etapa.ver_etapas_ong_originante', proyecto_id=proyecto.id, case_id=request.args.get('case_id')) }}"
                                         class="btn btn-sm btn-outline-primary">
                                      <i class="fas fa-layer-group me-1"></i>Ver etapas
                                     </a>

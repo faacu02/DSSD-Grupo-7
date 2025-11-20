@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 import json
 
 import services.etapa_service as etapa_service
+import services.proyecto_servicce as proyecto_service
 
 # ⭐ Importamos servicios Bonita
 from activities.completar_actividad_siguiente import (
@@ -11,7 +12,7 @@ from activities.completar_actividad_siguiente import (
     ver_propuestas as bonita_ver_propuestas,
     aceptar_propuesta as bonita_aceptar_propuesta
 )
-
+from utils.hasRol import roles_required
 donacion_bp = Blueprint('donacion', __name__)
 
 
@@ -19,8 +20,9 @@ donacion_bp = Blueprint('donacion', __name__)
 #       CARGAR DONACIÓN (LOCAL + BONITA)
 # ===================================================================
 @donacion_bp.route('/cargar_donacion', methods=['GET', 'POST'])
+@roles_required('Interviniente')
 def cargar_donacion():
-    case_id = request.args.get('case_id')
+    case_id = proyecto_service.devolver_case_id_por_proyecto_id()
     etapa_id = request.args.get('etapa_id')
 
     etapa = etapa_service.obtener_etapa_por_id(etapa_id)
@@ -75,6 +77,7 @@ def cargar_donacion():
 #       VER PROPUESTAS DE UNA ETAPA
 # ===================================================================
 @donacion_bp.route('/ver_propuestas/<int:etapa_id>')
+@roles_required('Originante')
 def ver_propuestas(etapa_id):
     case_id = request.args.get('case_id')
 
@@ -104,6 +107,7 @@ def ver_propuestas(etapa_id):
 #       ACEPTAR PROPUESTA
 # ===================================================================
 @donacion_bp.route('/aceptar_propuesta/<int:propuesta_id>')
+@roles_required('Originante')
 def aceptar_propuesta(propuesta_id):
     case_id = request.args.get('case_id')
     etapa_id = request.args.get('etapa_id')

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from classes.access import AccessAPI
+import services.proyecto_servicce as proyecto_service
 from classes.process import Process
 
 login_bp = Blueprint('login', __name__)
@@ -39,13 +40,16 @@ def login():
             # Guardar en la session
             session["bonita_roles"] = roles
             session["bonita_user_id"] = user_id
-
+            if proyecto_service.hay_proyectos():
+                case_id = proyecto_service.devolver_case_id_por_proyecto_id()
+            else:
+                case_id = None
             print("Usuario:", username)
             print("User ID:", user_id)
             print("Roles:", roles)
 
             flash(f'¡Bienvenido {username}!', 'success')
-            return redirect(url_for('formulario.index'))
+            return redirect(url_for('formulario.index', case_id=case_id))
             
         except Exception as e:
             flash(f'Error de autenticación: {str(e)}', 'error')

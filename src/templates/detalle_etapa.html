@@ -17,7 +17,7 @@
 </head>
 
 <body class="bg-light">
-
+	        {% set roles_lower = (roles|default([]))|map('lower')|list %}
     <!-- IMPORTAMOS EL MACRO GLOBAL -->
     {% import "macros.html" as macros %}
 
@@ -26,6 +26,7 @@
             <a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
                 <i class="fas fa-project-diagram me-2"></i>ProjectPlanning
             </a>
+                    {% if 'originante' in roles_lower %}
 
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav ms-auto">
@@ -34,6 +35,7 @@
                             <i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
                         </a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
                             <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
@@ -105,7 +107,7 @@
     <button class="btn btn-secondary" onclick="history.back()">
         <i class="fas fa-arrow-left me-1"></i>Volver
     </button>
-
+{% if 'interviniente' in roles_lower %}
     <!-- Botón: Cargar Observación -->
     <a href="{{ url_for('observacion.cargar_observacion',
                         etapa_id=etapa.id,
@@ -122,6 +124,35 @@
        class="btn btn-success">
         <i class="fas fa-hand-holding-heart me-1"></i>Proponer Donación
     </a>
+{% endif %}
+    				                    {% if 'originante' in roles_lower %}
+
+
+														<a href="{{ url_for('donacion.ver_propuestas',
+																etapa_id=etapa.id,
+																case_id=case_id) }}"
+														   class="btn btn-sm btn-outline-primary">
+															<i class="fas fa-hand-holding-heart me-1"></i>
+															Propuestas
+														</a>
+
+														<a href="{{ url_for('observacion.ver_observaciones_por_etapa',
+																etapa_id=etapa.id,
+																case_id=case_id) }}"
+														   class="btn btn-sm btn-warning">
+															<i class="fas fa-eye me-1"></i>
+															Observaciones
+														</a>
+
+														<a href="{{ url_for('etapa.completar_etapa',
+																etapa_id=etapa.id,
+																case_id=case_id,
+																ultima_propuesta='true') }}"
+														   class="btn btn-primary btn-sm">
+															<i class="fas fa-flag-checkered me-1"></i>Finalizar
+														</a>
+                        {% endif %}
+
 </div>
 
 
