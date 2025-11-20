@@ -319,23 +319,21 @@ def resolver_observacion(case_id, observacion_id):
 def crear_respuesta(case_id, observacion_id, respuesta_texto):
     try:
         process = get_process_from_session()
-        # Asegurarnos que el ID de observación se envíe como entero
-        try:
-            observacion_int = int(observacion_id)
-        except Exception:
-            observacion_int = observacion_id
-
         respuesta = {
-            "observacion_id": observacion_int,
+            "observacion_id": observacion_id,
             "descripcion": respuesta_texto
         }
 
         respuesta_json_str = json.dumps(respuesta, ensure_ascii=False)
         process.set_variable_by_case(case_id, "respuesta_data", respuesta_json_str, "java.lang.String")
 
-        resultado = completar_tarea_disponible(process, case_id)
+        completar_tarea_disponible(process, case_id)
 
-        return jsonify({"success": True, "result": resultado})
+        respuesta_raw = process.wait_for_case_variable(case_id, "respuesta_creada")
+
+        respuesta = json.loads(respuesta_raw)
+
+        return jsonify({"success": True, "respuesta": "Respuesta enviada con exito"})
     except Exception as e:
         import traceback
         print(traceback.format_exc())

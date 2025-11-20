@@ -35,7 +35,7 @@
                           {% endif %}
                         {% endwith %}
 
-                        <form method="POST" class="needs-validation" novalidate action="{{ url_for('respuesta.crear_respuesta') }}">
+                        <form method="POST" class="needs-validation" novalidate action="{{ url_for('respuesta.crear_respuesta', observacion_id=observacion_id) }}">
                             
                             <!-- Campos ocultos: case_id y observacion_id -->
                             <input type="hidden" name="case_id" value="{{ case_id }}">
