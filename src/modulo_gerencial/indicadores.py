@@ -1,6 +1,6 @@
 # routes/indicadores.py
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, render_template
 from datetime import date
 from db import db
 from models.proyecto import Proyecto
@@ -106,3 +106,15 @@ def indicador_proyectos_en_termino():
         "proyectos_en_termino": en_termino,
         "porcentaje_en_termino": porcentaje
     })
+    
+@indicadores_bp.route("/metricas")
+def metricas():
+    return render_template("metricas.html")
+
+
+@indicadores_bp.route("/proyectos-en-termino/vista")
+def vista_proyectos_en_termino():
+    datos = indicador_proyectos_en_termino().json
+    return render_template("proyectos_en_termino.html", datos=datos)
+
+
