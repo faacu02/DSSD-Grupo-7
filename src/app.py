@@ -8,6 +8,7 @@ from controllers.donacion import donacion_bp
 import json
 from controllers.observacion import observacion_bp
 from controllers.respuesta_observacion import respuesta_bp
+from modulo_gerencial.indicadores import indicadores_bp
 
 app = Flask(__name__)
 app.secret_key = 'tu_clave_secreta_aqui'  # Necesario para los mensajes flash
@@ -29,6 +30,7 @@ app.register_blueprint(etapa_bp, url_prefix='/etapa')
 app.register_blueprint(donacion_bp, url_prefix='/donacion')
 app.register_blueprint(observacion_bp, url_prefix='/observacion')
 app.register_blueprint(respuesta_bp, url_prefix='/respuesta')
+app.register_blueprint(indicadores_bp, url_prefix='/indicadores')
 
 if __name__ == '__main__':
     app.run(debug=True)
