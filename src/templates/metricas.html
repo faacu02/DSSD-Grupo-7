@@ -112,13 +112,30 @@
                 <div class="card metric-card shadow-lg h-100">
                     <div class="card-body text-center p-5">
                         <div class="mb-4">
-                            <i class="fas fa-calendar-check metric-icon"></i>
+                            <i class="fas fa-calendar-times metric-icon"></i>
                         </div>
-                        <h4 class="card-title fw-bold mb-3">Proyectos No en Término</h4>
+                        <h4 class="card-title fw-bold mb-3">Proyectos Fuera de Término</h4>
                         <p class="card-text text-muted mb-4">
                             Mide si los proyectos finalizaron fuera del plazo planificado.
                         </p>
                         <a href="{{ url_for('indicadores.vista_proyectos_no_en_termino') }}" class="btn btn-primary btn-custom">
+                            <i class="fas fa-eye me-2"></i>Ver Indicador
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <!-- INDICADOR 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card metric-card shadow-lg h-100">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <i class="fas fa-trophy metric-icon"></i>
+                        </div>
+                        <h4 class="card-title fw-bold mb-3">Ranking de ONGs</h4>
+                        <p class="card-text text-muted mb-4">
+                            Ranking de ONGs por cantidad de propuestas de donación realizadas.
+                        </p>
+                        <a href="{{ url_for('indicadores.vista_ranking_ongs') }}" class="btn btn-primary btn-custom">
                             <i class="fas fa-eye me-2"></i>Ver Indicador
                         </a>
                     </div>
