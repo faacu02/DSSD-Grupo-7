@@ -5,10 +5,13 @@ from datetime import date
 from db import db
 from models.proyecto import Proyecto
 from models.etapa import Etapa
+from models.ong import ONG
+
 
 from modulo_gerencial.bonita_utils import (
     get_process_id_by_name,
-    obtener_casos_completados
+    obtener_casos_completados,
+    get_bonita_session  
 )
 
 indicadores_bp = Blueprint("indicadores", __name__)
@@ -201,7 +204,7 @@ def indicador_proyectos_no_en_termino():
             print("❌ FUERA DE TÉRMINO")
             no_en_termino += 1
         else:
-            print("❌ FUERA DE TÉRMINO")
+            print("EN TÉRMINO")
 
     porcentaje = no_en_termino / total if total > 0 else 0.0
     return jsonify({
@@ -214,5 +217,66 @@ def indicador_proyectos_no_en_termino():
 def vista_proyectos_no_en_termino():
     datos = indicador_proyectos_no_en_termino().json
     return render_template("proyectos_no_en_termino.html", datos=datos)
-    
+
+
+
+@indicadores_bp.route("/indicador-ongs-propuestas", methods=["GET"])
+def indicador_ongs_propuestas():
+    from collections import Counter
+
+    session = get_bonita_session()
+    base_url = "http://localhost:8080/bonita"
+
+    contador = Counter()
+
+    params = {
+        "f": ["name=Proponer donación"],
+        "o": "archivedDate ASC",
+        "p": 0,
+        "c": 10000
+    }
+
+    resp = session.get(f"{base_url}/API/bpm/archivedUserTask", params=params)
+    resp.raise_for_status()
+    tareas = resp.json()
+
+    # contar por ejecutor
+    for t in tareas:
+        ejecutor = t.get("executedBy")
+        if ejecutor:
+            contador[ejecutor] += 1
+
+    ranking = []
+
+    for user_id, cant in contador.most_common():
+
+        # Buscar en tabla ONG local
+        ong = ONG.query.filter_by(bonita_user_id=int(user_id)).first()
+
+        if ong:
+            nombre_mostrar = ong.nombre
+        else:
+            # si no está en local, mostrar el nombre del usuario de Bonita
+            user_resp = session.get(f"{base_url}/API/identity/user/{user_id}")
+            if user_resp.status_code == 200:
+                usuario = user_resp.json()
+                nombre_mostrar = usuario.get("userName")
+            else:
+                nombre_mostrar = f"Usuario {user_id}"
+
+        ranking.append({
+            "ong": nombre_mostrar,
+            "propuestas_realizadas": cant
+        })
+
+    return jsonify({
+        "total_ongs": len(ranking),
+        "ranking": ranking
+    })
+
+@indicadores_bp.route("/indicador-ongs-propuestas/vista")
+def vista_ranking_ongs():
+    datos = indicador_ongs_propuestas().json
+    return render_template("ranking_ongs.html", datos=datos)
+
 

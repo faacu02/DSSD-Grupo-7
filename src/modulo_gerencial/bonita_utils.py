@@ -76,3 +76,42 @@ def obtener_casos_completados(process_id: int) -> list[dict]:
     })
     resp.raise_for_status()
     return resp.json()
+
+import requests
+
+def get_archived_tasks(case_id: int, task_name: str = None):
+    """
+    Devuelve las tareas archivadas (completadas) de un caso de Bonita.
+    Si pasás task_name, filtra por nombre exacto de la tarea.
+    """
+
+    # Obtener sesión autenticada a Bonita
+    session = get_bonita_session()
+
+    base_url = "http://localhost:8080/bonita"
+
+    # Armamos filtros
+    params = {
+        "f": [f"caseId={case_id}"],
+        "o": "archivedDate ASC",  # ordenadas por fecha
+        "p": 0,
+        "c": 1000                 # máximo de tareas a devolver
+    }
+
+    url = f"{base_url}/API/bpm/archivedUserTask"
+
+    try:
+        resp = session.get(url, params=params)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"[ERROR] No se pudieron obtener tareas archivadas: {e}")
+        return []
+
+    tareas = resp.json()
+
+    # Si se quiere filtrar por nombre exacto
+    if task_name:
+        tareas = [t for t in tareas if t.get("displayName") == task_name or t.get("name") == task_name]
+
+    return tareas
+
