@@ -29,10 +29,12 @@ def cargar_etapa():
         ultima_etapa = request.form.get('ultima_etapa')
 
         if not (proyecto_id and nombre_etapa and fecha_inicio and fecha_fin and tipo_cobertura):
-            flash("Faltan campos obligatorios", "error")
-            return redirect(url_for('etapa.cargar_etapa',
-                                    case_id=case_id,
-                                    proyecto_id=proyecto_id))
+            return redirect(url_for(
+                'etapa.cargar_etapa',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                error="Faltan campos obligatorios."
+            ))
 
         try:
             # ⭐ Llamada DIRECTA a Bonita (sin requests.post)
@@ -60,19 +62,26 @@ def cargar_etapa():
             )
 
         except Exception as e:
-            flash(f"Error cargando etapa: {str(e)}", "error")
-            return redirect(url_for('etapa.cargar_etapa',
-                                    case_id=case_id,
-                                    proyecto_id=proyecto_id))
+             return redirect(url_for(
+                'etapa.cargar_etapa',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                error=f"Error cargando etapa: {str(e)}"
+            ))
 
         if ultima_etapa == 'true':
-            return redirect(url_for('formulario.confirmar_proyecto',
-                                    case_id=case_id,
-                                    proyecto_id=proyecto_id))
-
-        return redirect(url_for('etapa.cargar_etapa',
-                                case_id=case_id,
-                                proyecto_id=proyecto_id))
+            return redirect(url_for(
+                'formulario.confirmar_proyecto',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                success="Etapa final registrada correctamente."
+            ))
+        return redirect(url_for(
+            'etapa.cargar_etapa',
+            case_id=case_id,
+            proyecto_id=proyecto_id,
+            success="Etapa creada correctamente."
+        ))
 
     # GET
     case_id = request.args.get('case_id')
@@ -113,8 +122,10 @@ def detalle_etapa(etapa_id):
     etapa_obj = etapa_service.obtener_etapa_por_id(etapa_id)
     proyecto_id = request.args.get('proyecto_id')
     if not etapa_obj:
-        flash('Etapa no encontrada.', 'error')
-        return redirect(url_for('formulario.ver_proyectos'))
+        return redirect(url_for(
+            'formulario.ver_proyectos',
+            error="Etapa no encontrada."
+        ))
     roles= session.get("bonita_roles", [])
     return render_template(
         'detalle_etapa.html',
@@ -141,9 +152,13 @@ def completar_etapa(etapa_id):
     ultima_propuesta = request.args.get('ultima_propuesta')
 
     if not etapa:
-        flash('Etapa no encontrada.', 'error')
-        return redirect(url_for('etapa.ver_etapas_proyecto', proyecto_id=etapa.proyecto_id))
+        return redirect(url_for(
+            'etapa.ver_etapas_proyecto',
+            proyecto_id=etapa_id,
+            error="Etapa no encontrada."
+        ))
     bonita_completar_etapa(case_id, etapa.etapa_cloud_id, ultima_propuesta) 
+    etapa_service.marcar_etapa_completa(etapa_id)
     etapas= etapa_service.obtener_etapas_por_proyecto(etapa.proyecto_id)
     proyecto = proyecto_service.obtener_proyecto_por_id(etapa.proyecto_id)
     return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto,case_id=case_id)

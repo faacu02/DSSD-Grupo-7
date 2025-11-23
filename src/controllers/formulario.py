@@ -41,8 +41,10 @@ def formulario_nombre():
         nombre = request.form.get('nombre')
 
         if not nombre:
-            flash('Por favor, ingresa un nombre válido.', 'error')
-            return redirect(url_for('formulario.formulario_nombre'))
+            return redirect(url_for(
+                'formulario.formulario_nombre',
+                error="Por favor, ingresa un nombre válido."
+            ))
 
         try:
             # Crear proyecto local
@@ -53,13 +55,18 @@ def formulario_nombre():
             case_id = iniciar_proyecto(nombre)
             
             proyecto_service.actualizar_case_id(id_proyecto, case_id)
-
-            flash(f"Proyecto creado correctamente: {nombre}", "success")
-            return redirect(url_for('etapa.cargar_etapa', case_id=case_id, proyecto_id=proyecto.id))
-
+            return redirect(url_for(
+                'etapa.cargar_etapa',
+                case_id=case_id,
+                proyecto_id=proyecto.id,
+                success=f"Proyecto '{nombre}' creado correctamente."
+            ))
+        
         except Exception as e:
-            flash(f"Error: {str(e)}", "error")
-            return redirect(url_for('formulario.formulario_nombre'))
+            return redirect(url_for(
+                'formulario.formulario_nombre',
+                error=f"Error creando proyecto: {str(e)}"
+            ))
     case_id = request.args.get('case_id')
     return render_template('formulario_nombre.html', case_id=case_id)
 
@@ -88,14 +95,18 @@ def confirmar_proyecto():
 
         bonita_confirmar(case_id, ultima_etapa)
 
-        flash('Proyecto confirmado correctamente.', 'success')
-
-        return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
-
+        return redirect(url_for(
+            'formulario.ver_proyectos',
+            case_id=case_id,
+            success="Proyecto confirmado correctamente."
+        ))
     except Exception as e:
-        flash(f"Error confirmando proyecto: {str(e)}", "error")
-        return redirect(request.url)
-
+        return redirect(url_for(
+            'formulario.confirmar_proyecto',
+            case_id=case_id,
+            proyecto_id=proyecto_id,
+            error=f"Error confirmando proyecto: {str(e)}"
+        ))
 
 @formulario_bp.route('/proyectos', methods=['GET'])
 def ver_proyectos():
@@ -111,15 +122,26 @@ def marcar_como_completado(proyecto_id):
     try:
         proyecto_service.marcar_proyecto_como_completado(proyecto_id)
         # ⭐ Llamada DIRECTA a Bonita (sin requests)
-        data = bonita_marcar_como_completado(case_id)
-        if data.get("success"):
-            flash('Proyecto marcado como completado correctamente.', 'success')
+        data = bonita_marcar_como_completado(case_id).get_json()
+        if  data.get("success"):
+                    return redirect(url_for(
+            'formulario.ver_proyectos',
+            case_id=case_id,
+            success="Proyecto completado correctamente."
+        ))
         else:
-            flash(f'Error al completar proyecto: {data.get("error")}', 'error')
+            return redirect(url_for(
+                'formulario.ver_proyectos',
+                case_id=case_id,
+                error=f"Error al completar proyecto en Bonita: {data.get('error')}"
+            ))
     except Exception as e:
-        flash(f'Error de conexión: {str(e)}', 'error')
+        return redirect(url_for(
+            'formulario.ver_proyectos',
+            case_id=case_id,
+            error=str(e)
+        ))
 
-    return redirect(url_for('formulario.ver_proyectos', case_id=case_id))
 
 @formulario_bp.route('/completados', methods=['GET'])
 def ver_proyectos_completados():
@@ -138,8 +160,10 @@ def ver_proyectos_completados():
                                case_id=case_id)
 
     except Exception as e:
-        flash(f"Error al cargar proyectos completados: {str(e)}", "error")
-        return redirect(url_for('formulario.index'))
+        return redirect(url_for(
+            'formulario.index',
+            error=f"Error cargando proyectos completados: {str(e)}"
+        ))
 
 @formulario_bp.route('/iniciar_proceso_completados')
 def iniciar_proceso_completados():
@@ -150,6 +174,7 @@ def iniciar_proceso_completados():
         return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id))
 
     except Exception as e:
-        print("exception", str(e))
-        flash(f"Error iniciando proceso en Bonita: {str(e)}", "error")
-        return redirect(url_for('formulario.index'))
+        return redirect(url_for(
+            'formulario.index',
+            error=f"Error iniciando proceso: {str(e)}"
+        ))

@@ -15,8 +15,7 @@ def crear_respuesta(observacion_id):
 
         bonita_crear_respuesta(case_id, observacion_id, respuesta_texto)
 
-        flash("Respuesta creada correctamente", "success")
-        return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id))
+        return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id, success="Respuesta creada correctamente."))
 
     return render_template("cargar_respuesta.html",
                            observacion_id=observacion_id,

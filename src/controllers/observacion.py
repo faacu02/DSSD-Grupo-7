@@ -23,8 +23,11 @@ def cargar_observacion():
         bonita_cargar_observacion(case_id, etapa.etapa_cloud_id, observacion)
         set_case_id_obs(case_id, proyecto_id)
 
-        flash("Observación cargada correctamente", "success")
-        return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id))
+        return redirect(url_for(
+                "formulario.ver_proyectos_completados",
+                case_id=case_id,
+                success="Observación cargada correctamente."
+            ))
 
     return render_template("cargar_observacion.html",
                            etapa_id=etapa_id,
@@ -84,11 +87,11 @@ def resolver(observacion_id):
     data = response.get_json()
     observacion = data.get("observacion", [])
 
-    flash("Observación resuelta correctamente", "success")
     
     return render_template(
         "detalle_observacion.html",
         etapa=etapa,
         observacion=observacion,
-        case_id=case_id
+        case_id=case_id,
+        success="Observación resuelta correctamente."
     )

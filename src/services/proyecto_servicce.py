@@ -1,5 +1,6 @@
 from models.proyecto import Proyecto
 from db import db
+from services.etapa_service import obtener_etapas_por_proyecto, obtener_etapa_por_id
 
 def crear_proyecto(nombre):
     nuevo = Proyecto(nombre=nombre)
@@ -13,7 +14,11 @@ def obtener_proyectos():
 
 def marcar_proyecto_como_completado(proyecto_id):
     proyecto = Proyecto.query.get(proyecto_id)
+    etapas= obtener_etapas_por_proyecto(proyecto_id)
     if proyecto:
+        for etapa in etapas:
+            if etapa.estado != 'Completa':
+                raise Exception("No se puede completar el proyecto, hay etapas incompletas")
         proyecto.completado = True
         db.session.commit()
         return proyecto
