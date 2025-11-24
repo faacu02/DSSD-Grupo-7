@@ -267,8 +267,8 @@ def cargar_observacion(case_id, etapa_id, observacion):
 def obtener_observaciones_por_etapa(case_id, etapa_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observaciones_de_etapa", "", "java.lang.String")
         process.set_variable_by_case(case_id, "etapa_id_get_observaciones", int(etapa_id), "java.lang.Integer")
-
         completar_tarea_disponible(process, case_id)
 
         observaciones_raw = process.wait_for_case_variable(case_id, "observaciones_de_etapa")
@@ -284,6 +284,7 @@ def obtener_observaciones_por_etapa(case_id, etapa_id):
 def seleccionar_observacion(case_id, observacion_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_seleccionada", "", "java.lang.String")
         process.set_variable_by_case(case_id, "observacion_id_seleccionar", int(observacion_id), "java.lang.Integer")
 
         completar_tarea_disponible(process, case_id)
@@ -301,6 +302,7 @@ def seleccionar_observacion(case_id, observacion_id):
 def resolver_observacion(case_id, observacion_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_resuelta", "", "java.lang.String")
         process.set_variable_by_case(case_id, "observacion_id_resolver", int(observacion_id), "java.lang.Integer")
 
         completar_tarea_disponible(process, case_id)
