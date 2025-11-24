@@ -135,7 +135,8 @@ def ver_proyectos_completados():
 
         return render_template('ver_proyectos_completados.html',
                                proyectos=proyectos,
-                               case_id=case_id)
+                               case_id=case_id,
+                               es_interviniente=is_interviniente)
 
     except Exception as e:
         flash(f"Error al cargar proyectos completados: {str(e)}", "error")

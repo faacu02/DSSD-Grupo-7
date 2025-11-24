@@ -87,6 +87,8 @@
                                     <input type="hidden" name="case_id" value="{{ case_id }}">
                                     <input type="hidden" name="etapa_id" value="{{ etapa.id }}">
                                     <input type="hidden" name="observacion" value='{{ observacion|tojson }}'>
+                                    <input type="hidden" name="cantidad_observaciones" value="{{ cantidad_observaciones }}">
+                                    <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
 
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-check me-1"></i>Marcar como resuelta
@@ -97,6 +99,8 @@
                                     <input type="hidden" name="case_id" value="{{ case_id }}">
                                     <input type="hidden" name="etapa_id" value="{{ etapa.id }}">
                                     <input type="hidden" name="observacion" value='{{ observacion|tojson }}'>
+                                    <input type="hidden" name="cantidad_observaciones" value="{{ cantidad_observaciones }}">
+                                    <input type="hidden" name="proyecto_id" value="{{ proyecto_id }}">
                                     <button type="submit" class="btn btn-success">
                                         <i class="fas fa-check me-1"></i>Responder a la observación
                                     </button>
