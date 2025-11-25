@@ -25,7 +25,13 @@ def cargar_observacion():
 
         flash("Observación cargada correctamente", "success")
         return redirect(url_for("formulario.index", case_id=case_id))
-
+        """
+        return redirect(url_for(
+                "formulario.ver_proyectos_completados",
+                case_id=case_id,
+                success="Observación cargada correctamente."
+            ))
+        """
     return render_template("cargar_observacion.html",
                            etapa_id=etapa_id,
                            case_id=case_id,
@@ -99,13 +105,13 @@ def resolver(observacion_id):
     data = response.get_json()
     observacion = data.get("observacion", [])
 
-    flash("Observación resuelta correctamente", "success")
-    
+    proyecto_id = request.form.get("proyecto_id") or request.args.get("proyecto_id")
     return render_template(
         "detalle_observacion.html",
         etapa=etapa,
         observacion=observacion,
         case_id=case_id,
         cantidad_observaciones=cantidad_observaciones,
-        proyecto_id=proyecto_id
+        proyecto_id=proyecto_id,
+        success="Observación resuelta correctamente."
     )

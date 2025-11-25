@@ -12,8 +12,10 @@ def login():
         password = request.form.get('password')
         
         if not username or not password:
-            flash('Por favor, ingresa usuario y contraseña.', 'error')
-            return render_template('login.html')
+            return redirect(url_for(
+                'login.login',
+                error="Por favor, ingresa usuario y contraseña."
+            ))
         
         try:
             # Login en Bonita
@@ -30,7 +32,10 @@ def login():
             # 🔥 Buscar el usuario por nombre
             bonita_user = process.get_user_by_name(username)
             if not bonita_user:
-                raise Exception("Usuario no encontrado en Bonita")
+                return redirect(url_for(
+                    'login.login',
+                    error="Usuario no encontrado en Bonita."
+                ))
 
             user_id = bonita_user.get("id")
 
@@ -48,12 +53,16 @@ def login():
             print("User ID:", user_id)
             print("Roles:", roles)
 
-            flash(f'¡Bienvenido {username}!', 'success')
-            return redirect(url_for('formulario.index', case_id=case_id))
-            
+            return redirect(url_for(
+                'formulario.index',
+                case_id=case_id,
+                success=f"¡Bienvenido {username}!"
+            ))
         except Exception as e:
-            flash(f'Error de autenticación: {str(e)}', 'error')
-            return render_template('login.html')
+            return redirect(url_for(
+                'login.login',
+                error=f"Error de autenticación: {str(e)}"
+            ))
     
     return render_template('login.html')
 
@@ -63,5 +72,7 @@ def login():
 @login_bp.route('/logout')
 def logout():
     session.clear()
-    flash('Sesión cerrada correctamente.', 'success')
-    return redirect(url_for('login.login'))
+    return redirect(url_for(
+        'login.login',
+        success="Sesión cerrada correctamente."
+    ))

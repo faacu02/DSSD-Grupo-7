@@ -44,8 +44,15 @@ def cargar_donacion():
         try:
             monto_float = float(monto) if monto else None
         except ValueError:
-            flash("El monto debe ser un número válido.", "error")
-            return redirect(request.url)
+            return redirect(url_for(
+                'donacion.cargar_donacion',
+                etapa_id=etapa_id,
+                case_id=case_id,
+                etapa_cloud_id=etapa_cloud_id,
+                tipo_cobertura=tipo_cobertura,
+                error="El monto debe ser un número válido."
+            ))
+
 
         try:
             # ⭐ Llamada DIRECTA al servicio Bonita (sin requests)
@@ -57,12 +64,14 @@ def cargar_donacion():
                 especificacion
             )
 
-            flash("Donación cargada correctamente.", "success")
-            return redirect(url_for('formulario.index'))
+            return redirect(url_for('formulario.index', success="Donación cargada correctamente."))
 
         except Exception as e:
-            flash(f"Error al cargar donación: {str(e)}", "error")
-
+            return redirect(url_for(
+                'donacion.cargar_donacion',
+                etapa_id=etapa_id,
+                error=f"Error al cargar donación: {str(e)}"
+            ))
     return render_template(
         'cargar_donacion.html',
         case_id=case_id,
@@ -88,9 +97,12 @@ def ver_propuestas(etapa_id):
         propuestas = bonita_ver_propuestas(case_id, etapa.etapa_cloud_id)
 
     except Exception as e:
-        flash(f"Error recuperando propuestas: {str(e)}", "error")
-        return redirect(url_for('etapa.detalle_etapa', etapa_id=etapa_id))
-
+        return redirect(url_for(
+            'etapa.detalle_etapa',
+            etapa_id=etapa_id,
+            case_id=case_id,
+            error=f"Error recuperando propuestas: {str(e)}"
+        ))
     # propuestas viene como lista/dict, ya no como JSON string
     propuestas_lista = propuestas.get("propuestas", [])
 
@@ -119,13 +131,16 @@ def aceptar_propuesta(propuesta_id):
         # Actualizar etapa local
         etapa_service.actualizar_cobertura(etapa_id, cobertura_actual)
 
-        flash("Propuesta aceptada correctamente.", "success")
-
+        return redirect(url_for(
+            'etapa.detalle_etapa',
+            etapa_id=etapa_id,
+            case_id=case_id,
+            success="Propuesta aceptada correctamente."
+        ))
     except Exception as e:
-        flash("Error al aceptar propuesta: " + str(e), "error")
-
-    return redirect(url_for(
-        'etapa.detalle_etapa',
-        etapa_id=etapa_id,
-        case_id=case_id
-    ))
+        return redirect(url_for(
+            'etapa.detalle_etapa',
+            etapa_id=etapa_id,
+            case_id=case_id,
+            error=f"Error al aceptar propuesta: {str(e)}"
+        ))

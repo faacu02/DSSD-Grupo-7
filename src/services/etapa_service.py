@@ -39,7 +39,7 @@ def actualizar_cobertura(etapa_id, nueva_cobertura):
 def marcar_etapa_completa(etapa_id):
     etapa = obtener_etapa_por_id(etapa_id)
     if etapa:
-        etapa.estado = "Completa"
+        etapa.estado = 'Completa'
         db.session.commit()
         return etapa
     return None

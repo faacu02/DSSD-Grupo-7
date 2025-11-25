@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking de ONGs - ProjectPlanning</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 100px 0 60px 0;
+            margin-bottom: 40px;
+        }
+        .metric-card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: 700;
+        }
+        .stat-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .ranking-item {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        .ranking-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .ranking-position {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            min-width: 60px;
+        }
+        .ranking-top3 {
+            border-left-width: 8px;
+        }
+        .ranking-1 {
+            border-left-color: #FFD700;
+            background: linear-gradient(135deg, #fff9e6 0%, #fffaed 100%);
+        }
+        .ranking-2 {
+            border-left-color: #C0C0C0;
+            background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+        }
+        .ranking-3 {
+            border-left-color: #CD7F32;
+            background: linear-gradient(135deg, #fff3e6 0%, #fff8f0 100%);
+        }
+        .ong-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+        .propuestas-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .btn-custom {
+            border-radius: 25px;
+            padding: 12px 35px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .trophy-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        .trophy-gold { color: #FFD700; }
+        .trophy-silver { color: #C0C0C0; }
+        .trophy-bronze { color: #CD7F32; }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="{{ url_for('formulario.index') }}">
+                <i class="fas fa-project-diagram me-2"></i>ProjectPlanning
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('indicadores.metricas') }}">
+                            <i class="fas fa-chart-line me-1"></i>Métricas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('formulario.index') }}">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
+                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-white">
+        <div class="container">
+            <div class="text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-trophy me-3"></i>Ranking de ONGs
+                </h1>
+                <p class="lead">
+                    Clasificación por cantidad de propuestas de donación realizadas
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Metrics Content -->
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Total ONGs Box -->
+                <div class="stat-box">
+                    <i class="fas fa-hands-helping fa-3x mb-3"></i>
+                    <div class="stat-number">{{ datos.total_ongs }}</div>
+                    <div class="stat-label">ONGs Participantes</div>
+                </div>
+
+                <!-- Ranking Card -->
+                <div class="card metric-card">
+                    <div class="card-body p-5">
+                        <h3 class="text-center fw-bold mb-4">
+                            <i class="fas fa-list-ol me-2"></i>Clasificación
+                        </h3>
+
+                        {% if datos.ranking %}
+                            {% for item in datos.ranking %}
+                                {% set posicion = loop.index %}
+                                <div class="ranking-item 
+                                    {% if posicion == 1 %}ranking-top3 ranking-1
+                                    {% elif posicion == 2 %}ranking-top3 ranking-2
+                                    {% elif posicion == 3 %}ranking-top3 ranking-3
+                                    {% endif %}">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="ranking-position">
+                                                {% if posicion == 1 %}
+                                                    <i class="fas fa-trophy trophy-icon trophy-gold"></i>
+                                                {% elif posicion == 2 %}
+                                                    <i class="fas fa-trophy trophy-icon trophy-silver"></i>
+                                                {% elif posicion == 3 %}
+                                                    <i class="fas fa-trophy trophy-icon trophy-bronze"></i>
+                                                {% else %}
+                                                    #{{ posicion }}
+                                                {% endif %}
+                                            </div>
+                                            <div class="ong-name">
+                                                <i class="fas fa-building me-2"></i>{{ item.ong }}
+                                            </div>
+                                        </div>
+                                        <div class="propuestas-badge">
+                                            <i class="fas fa-gift me-2"></i>{{ item.propuestas_realizadas }} propuestas
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No hay datos de propuestas disponibles
+                            </div>
+                        {% endif %}
+
+                        <div class="text-center mt-5">
+                            <a href="{{ url_for('indicadores.metricas') }}" class="btn btn-outline-primary btn-custom">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Métricas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

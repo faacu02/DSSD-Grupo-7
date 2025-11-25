@@ -83,6 +83,8 @@
     <!-- Hero Section -->
     <section class="hero-section text-white">
         <div class="container">
+            		{% include "messages.html" %}
+
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="text-center text-lg-start">
@@ -105,6 +107,10 @@
                         class="btn btn-light btn-hero">
                         <i class="fas fa-check-circle me-2"></i>
                         Ver Proyectos Completados
+                    </a>
+                    <a href="{{ url_for('indicadores.metricas') }}" class="btn btn-light btn-hero">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Ver Métricas
                     </a>
                     {% endif %}
 
@@ -280,6 +286,7 @@
                     <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-primary">
                         <i class="fas fa-rocket me-1"></i>Crear Proyecto
                     </a>
+
                     {% endif %}
                 </div>
             </div>

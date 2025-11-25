@@ -20,8 +20,9 @@ def crear_respuesta(observacion_id):
 
         flash("Respuesta creada correctamente", "success")
         if cantidad_observaciones > 0:
-            return redirect(url_for('observacion.ver_observaciones_por_etapa', etapa_id=etapa_id, case_id=case_id, proyecto_id=proyecto_id))
-        return redirect(url_for("formulario.index", case_id=case_id))
+            return redirect(url_for('observacion.ver_observaciones_por_etapa', etapa_id=etapa_id, case_id=case_id, proyecto_id=proyecto_id, success="Respuesta creada correctamente."))
+        return redirect(url_for("formulario.index", case_id=case_id, success="Respuesta creada correctamente."))
+        #return redirect(url_for("formulario.ver_proyectos_completados", case_id=case_id, success="Respuesta creada correctamente."))
 
     return render_template("cargar_respuesta.html",
                            observacion_id=observacion_id,
