@@ -267,8 +267,8 @@ def cargar_observacion(case_id, etapa_id, observacion):
 def obtener_observaciones_por_etapa(case_id, etapa_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observaciones_de_etapa", "", "java.lang.String")
         process.set_variable_by_case(case_id, "etapa_id_get_observaciones", int(etapa_id), "java.lang.Integer")
-
         completar_tarea_disponible(process, case_id)
 
         observaciones_raw = process.wait_for_case_variable(case_id, "observaciones_de_etapa")
@@ -284,6 +284,7 @@ def obtener_observaciones_por_etapa(case_id, etapa_id):
 def seleccionar_observacion(case_id, observacion_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_seleccionada", "", "java.lang.String")
         process.set_variable_by_case(case_id, "observacion_id_seleccionar", int(observacion_id), "java.lang.Integer")
 
         completar_tarea_disponible(process, case_id)
@@ -301,6 +302,7 @@ def seleccionar_observacion(case_id, observacion_id):
 def resolver_observacion(case_id, observacion_id):
     try:
         process = get_process_from_session()
+        process.set_variable_by_case(case_id, "observacion_resuelta", "", "java.lang.String")
         process.set_variable_by_case(case_id, "observacion_id_resolver", int(observacion_id), "java.lang.Integer")
 
         completar_tarea_disponible(process, case_id)
@@ -316,17 +318,20 @@ def resolver_observacion(case_id, observacion_id):
         return jsonify({"success": False, "error": str(e)})
     
 
-def crear_respuesta(case_id, observacion_id, respuesta_texto):
+def crear_respuesta(case_id, observacion_id, respuesta_texto, cantidad_observaciones):
     try:
         process = get_process_from_session()
         respuesta = {
             "observacion_id": observacion_id,
             "descripcion": respuesta_texto
         }
-
+        hay_observaciones_pendientes = bool(cantidad_observaciones > 0)
         respuesta_json_str = json.dumps(respuesta, ensure_ascii=False)
         process.set_variable_by_case(case_id, "respuesta_data", respuesta_json_str, "java.lang.String")
-
+        if hay_observaciones_pendientes:
+            process.set_variable_by_case(case_id, "hay_observaciones", "true", "java.lang.Boolean")
+        else:   
+            process.set_variable_by_case(case_id, "hay_observaciones", "false", "java.lang.Boolean")
         completar_tarea_disponible(process, case_id)
 
         respuesta_raw = process.wait_for_case_variable(case_id, "respuesta_creada")

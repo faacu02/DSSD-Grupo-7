@@ -67,18 +67,19 @@
 
                             <div class="mt-auto d-flex justify-content-between align-items-center">
                                 <small class="text-muted">ID: {{ proyecto.id }}</small>
-
+                                {% if es_interviniente %}
                                 <a href="{{ url_for('etapa.ver_etapas_proyecto',
                                                     proyecto_id=proyecto.id,
                                                     case_id=request.args.get('case_id')) }}"
                                    class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-layer-group me-1"></i> Ver etapas ong interviniente
+                                    <i class="fas fa-layer-group me-1"></i> Ver etapas
                                 </a>
+                                {% else %}
                                 <a href="{{ url_for('etapa.ver_etapas_proyecto', proyecto_id=proyecto.id, case_id=request.args.get('case_id')) }}"
                                     class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-layer-group me-1"></i>Ver etapas ong originante
+                                    <i class="fas fa-layer-group me-1"></i>Ver etapas
                                 </a>
-
+                                {% endif %}
                             </div>
 
                         </div>
