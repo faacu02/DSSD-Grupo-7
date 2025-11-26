@@ -430,4 +430,34 @@ class Process:
 
         print(f"[WARN] timeout esperando {varname} en case {case_id}")
         return None
+    
+    def get_cases_by_process_id(self, process_id):
+        """
+        Devuelve los casos de un proceso, ordenados por fecha de inicio DESC.
+        Compatible con Bonita 7.x
+        """
+        url = f"{self.base_url}API/bpm/case"
+        params = {
+            "f": f"processDefinitionId={process_id}",
+            "o": "startDate DESC",
+            "p": 0,
+            "c": 10
+        }
+
+        headers = {
+            "X-Bonita-API-Token": self.session.cookies.get("X-Bonita-API-Token", "")
+        }
+
+        resp = self.session.get(url, params=params, headers=headers)
+
+        if resp.status_code != 200:
+            raise Exception(f"Error al obtener casos del proceso: {resp.text}")
+
+        print("Respuesta Bonita:", resp.text)  # debugging
+
+        return resp.json()
+
+
+    
+    
  
