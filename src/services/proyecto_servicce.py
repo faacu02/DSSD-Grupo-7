@@ -9,7 +9,7 @@ def crear_proyecto(nombre):
     return nuevo
 
 def obtener_proyectos():
-    return Proyecto.query.all()
+    return Proyecto.query.filter_by(completado=False).all()
 
 
 def marcar_proyecto_como_completado(proyecto_id):

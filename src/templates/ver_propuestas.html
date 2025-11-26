@@ -73,6 +73,7 @@
 											<th>Detalle</th>
 											<th>Estado</th>
 											<th>Creada</th>
+											<th class="text-end">Acciones</th>
 										</tr>
 									</thead>
 
@@ -80,30 +81,29 @@
 										{% for p in propuestas %}
 											<tr class="row-hover">
 												<td>{{ p.id }}</td>
-												<td>{{ p.donante_nombre or '—' }}</td>
-												<td>${{ p.monto }}</td>
-												<td>{{ p.especificacion.detalle }}</td>
+												<td>{{ p.donante_nombre if (p.donante_nombre and p.donante_nombre != 'None') else '—' }}</td>
+												<td>${{ p.monto if (p.monto is not none) else '—' }}</td>
+												<td>{{ (p.especificacion.detalle if (p.especificacion and p.especificacion.detalle and p.especificacion.detalle != 'None') else '—') }}</td>
 												<td>
 													<span class="badge {% if p.estado == 'pending' %}bg-warning text-dark
-														{% elif p.estado == 'approved' %}bg-success
+														{% elif p.estado == 'accepted' %}bg-success
 														{% else %}bg-secondary{% endif %}">
 														{{ p.estado }}
 													</span>
 												</td>
 												<td>{{ p.created_at[:10] }}</td>
-												<td>
-												{% if p.estado == 'pending' %}
-												<a href="{{ url_for('donacion.aceptar_propuesta',
-																	propuesta_id=p.id,
-																	etapa_id=etapa_id,
-																	case_id=case_id, propuestas=propuestas) }}"
-												class="btn btn-success btn-sm">
-													<i class="fas fa-check"></i> Aceptar
-												</a>
-												{% else %}
-													<span class="text-muted">—</span>
-												{% endif %}
-											</td>
+												<td class="text-end">
+													<div class="d-flex justify-content-end">
+														{% if p.estado == 'pending' %}
+														<a href="{{ url_for('donacion.aceptar_propuesta', propuesta_id=p.id, etapa_id=etapa_id, case_id=case_id, propuestas=propuestas) }}"
+														   class="btn btn-success btn-sm">
+															<i class="fas fa-check me-1"></i> Aceptar
+														</a>
+														{% else %}
+															<span class="text-muted">—</span>
+														{% endif %}
+													</div>
+												</td>
 											</tr>
 										{% endfor %}
 									</tbody>
