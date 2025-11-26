@@ -147,7 +147,7 @@
 															<i class="fas fa-eye me-1"></i>
 															Observaciones
 														</a>
-
+                                                        {% if etapa.estado != 'Completa' %}
 														<a href="{{ url_for('etapa.completar_etapa',
 																etapa_id=etapa.id,
 																case_id=case_id,
@@ -155,6 +155,11 @@
 														   class="btn btn-primary btn-sm">
 															<i class="fas fa-flag-checkered me-1"></i>Finalizar
 														</a>
+                                                        {% else %}
+                                                        <button class="btn btn-primary btn-sm" disabled title="La etapa ya está completa">
+                                                            <i class="fas fa-flag-checkered me-1"></i>Finalizar
+                                                        </button>
+                                                        {% endif %} 
                         {% endif %}
 
 </div>
