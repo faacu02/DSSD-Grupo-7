@@ -173,7 +173,7 @@ def ver_propuestas(case_id, etapa_id):
 
     completar_tarea_disponible(process, case_id)
 
-    propuestas_raw = process.wait_for_case_variable(case_id, "propuestas_por_etapa")
+    propuestas_raw = process.wait_for_case_variable_update(case_id, "propuestas_por_etapa")
 
     return json.loads(propuestas_raw)
 
@@ -188,7 +188,7 @@ def aceptar_propuesta(case_id, propuesta_id):
 
     completar_tarea_disponible(process, case_id)
 
-    cobertura_raw = process.wait_for_case_variable(case_id, "cobertura_actual")
+    cobertura_raw = process.wait_for_case_variable_update(case_id, "cobertura_actual")
 
     return json.loads(cobertura_raw)
 
