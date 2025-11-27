@@ -37,7 +37,7 @@
                           {% endif %}
                         {% endwith %}
 
-                        <form method="POST" class="needs-validation" novalidate>
+                        <form id="form-cargar-observacion" method="POST" class="needs-validation" novalidate>
                             
                             <!-- 🔥 Enviamos etapa_id oculto -->
                             <input type="hidden" name="etapa_id" value="{{ etapa_id }}">
@@ -56,7 +56,7 @@
                             </div>
 
                             <div class="d-grid gap-2 mt-4">
-                                <button type="submit" class="btn btn-warning btn-lg">
+                                <button type="button" class="btn btn-warning btn-lg" onclick="confirmarEnviarObservacion('form-cargar-observacion')">
                                     <i class="fas fa-save me-2"></i>Guardar Observación
                                 </button>
 
@@ -75,6 +75,8 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
         // Validación Bootstrap
         (function() {
@@ -92,6 +94,20 @@
                 });
             }, false);
         })();
+    </script>
+    <script>
+        function confirmarEnviarObservacion(formId) {
+            Swal.fire({
+                title: '¿Enviar observación?',
+                text: 'Se registrará la observación para la etapa seleccionada.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, enviar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) document.getElementById(formId).submit();
+            });
+        }
     </script>
 
 </body>
