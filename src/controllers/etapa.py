@@ -121,6 +121,7 @@ def detalle_etapa(etapa_id):
     case_id = request.args.get('case_id')
     etapa_obj = etapa_service.obtener_etapa_por_id(etapa_id)
     proyecto_id = request.args.get('proyecto_id')
+    proyecto= proyecto_service.obtener_proyecto_por_id(proyecto_id)
     if not etapa_obj:
         return redirect(url_for(
             'formulario.ver_proyectos',
@@ -133,7 +134,8 @@ def detalle_etapa(etapa_id):
         case_id=case_id,
         etapa_cloud_id=etapa_obj.etapa_cloud_id,
         roles=roles,
-        proyecto_id=proyecto_id
+        proyecto_id=proyecto_id, 
+        proyecto=proyecto
     )
 
 

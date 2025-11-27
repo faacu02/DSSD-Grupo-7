@@ -110,6 +110,7 @@
         <i class="fas fa-arrow-left me-1"></i>Volver
     </button>
 {% if 'interviniente' in roles_lower %}
+{% if proyecto.completado %}
     <!-- Botón: Cargar Observación -->
     <a href="{{ url_for('observacion.cargar_observacion',
                         etapa_id=etapa.id,
@@ -119,7 +120,8 @@
        class="btn btn-warning">
         <i class="fas fa-comment-dots me-1"></i>Cargar Observación
     </a>
-
+{% else %}
+{% if etapa.estado != 'Completa' %}
     <!-- Botón: Proponer Donación -->
     <a href="{{ url_for('donacion.cargar_donacion',
                         etapa_id=etapa.id,
@@ -127,6 +129,8 @@
        class="btn btn-success">
         <i class="fas fa-hand-holding-heart me-1"></i>Proponer Donación
     </a>
+{% endif %}
+{% endif %}
 {% endif %}
     				                    {% if 'originante' in roles_lower %}
 

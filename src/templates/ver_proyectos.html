@@ -22,11 +22,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('formulario.formulario_nombre') }}">
-                            <i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
                             <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
                         </a>
@@ -47,11 +42,7 @@
                 <h3 class="fw-bold text-primary"><i class="fas fa-folder-open me-2"></i>Proyectos</h3>
                 <p class="text-muted">Listado de proyectos disponibles. Hacé click en "Ver etapas" para inspeccionar las etapas de cada proyecto.</p>
             </div>
-            <div class="col-auto">
-                <a href="{{ url_for('formulario.formulario_nombre') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>Nuevo Proyecto
-                </a>
-            </div>
+
         </div>
 
         {% if proyectos and proyectos|length > 0 %}
