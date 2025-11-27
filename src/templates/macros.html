@@ -22,9 +22,27 @@
             {% endfor %}
         </ul>
 
-    {# Caso lista #}
-    {% elif parsed is sequence and not parsed is string %}
-        <ul class="list-group json-clean">
+{# Caso lista #}
+{% elif parsed is sequence and not parsed is string %}
+    <ul class="list-group json-clean">
+
+        {# 1) Caso ECONÓMICO: hay un diccionario con "monto" #}
+        {% if parsed|selectattr("monto", "defined")|list|length > 0 %}
+            {% set econ = (parsed|selectattr("monto","defined")|list)[0] %}
+            <li class="list-group-item px-2 py-1">
+                <strong>Monto:</strong> {{ econ["monto"] }}
+            </li>
+
+        {# 2) Caso MATERIALES: [{"especificacion":{"items":[...]}}] #}
+        {% elif parsed|selectattr("especificacion", "defined")|list|length > 0 %}
+            {% set spec = (parsed|selectattr("especificacion","defined")|list)[0] %}
+            <li class="list-group-item px-2 py-1">
+                <strong>Items:</strong>
+                {{ spec["especificacion"].get("items", []) | join(", ") }}
+            </li>
+
+        {# 3) Caso genérico (lo que ya funcionaba antes) #}
+        {% else %}
             {% for elem in parsed %}
                 {% if elem is mapping %}
                     {% for k, v in elem.items() %}
@@ -41,7 +59,9 @@
                     <li class="list-group-item px-2 py-1">{{ elem }}</li>
                 {% endif %}
             {% endfor %}
-        </ul>
+        {% endif %}
+    </ul>
+
 
     {# Caso string simple #}
     {% else %}

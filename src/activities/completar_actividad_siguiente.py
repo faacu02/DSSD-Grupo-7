@@ -114,7 +114,7 @@ def cargar_etapa(case_id, nombre_etapa, fecha_inicio, fecha_fin, tipo_cobertura,
 
     result = completar_tarea_disponible(process, case_id)
 
-    etapa_cloud_id = process.wait_for_case_variable(case_id, "etapa_cloud_id")
+    etapa_cloud_id = process.wait_for_case_variable_update(case_id, "etapa_cloud_id")
 
     return {"result": result, "etapa_cloud_id": etapa_cloud_id}
 

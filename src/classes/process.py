@@ -460,4 +460,21 @@ class Process:
 
     
     
- 
+    def wait_for_case_variable_update(self, case_id, varname, timeout=15, interval=0.3):
+        import time
+        start = time.time()
+
+        initial = self.get_case_variable(case_id, varname)
+        print("[DEBUG] valor inicial:", initial)
+
+        while time.time() - start < timeout:
+            current = self.get_case_variable(case_id, varname)
+            print(f"[DEBUG] polling {varname}:", current)
+
+            if str(current) != str(initial):
+                return current
+
+            time.sleep(interval)
+
+        print(f"[WARN] timeout esperando cambio de {varname}")
+        return initial

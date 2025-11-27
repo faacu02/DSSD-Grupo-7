@@ -23,7 +23,11 @@
 			</a>
 			<div class="collapse navbar-collapse" id="navbarNav">
 				<ul class="navbar-nav ms-auto">
-					
+					<li class="nav-item">
+						<a class="nav-link" href="{{ url_for('formulario.formulario_nombre') }}">
+							<i class="fas fa-plus-circle me-1"></i>Nuevo Proyecto
+						</a>
+					</li>
 					<li class="nav-item">
 						<a class="nav-link text-danger" href="{{ url_for('login.logout') }}">
 							<i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
@@ -79,7 +83,13 @@
 												<td>{{ p.id }}</td>
 												<td>{{ p.donante_nombre if (p.donante_nombre and p.donante_nombre != 'None') else '—' }}</td>
 												<td>${{ p.monto if (p.monto is not none) else '—' }}</td>
-												<td>{{ (p.especificacion.detalle if (p.especificacion and p.especificacion.detalle and p.especificacion.detalle != 'None') else '—') }}</td>
+<td>
+    {{
+        p.especificacion["items"] | join(", ")
+        if p.monto is none and p.especificacion
+        else "—"
+    }}
+</td>
 												<td>
 													<span class="badge {% if p.estado == 'pending' %}bg-warning text-dark
 														{% elif p.estado == 'accepted' %}bg-success
