@@ -9,6 +9,8 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5">
+        		{% include "messages.html" %}
+
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow">
@@ -71,11 +73,6 @@
                                     <i class="fas fa-check me-2"></i>
                                     ✅ Confirmar Proyecto
                                 </button>
-                               <!--  <a href="{{ url_for('formulario.cargar_etapa', case_id=case_id, proyecto_id=proyecto_id) }}" 
-                                   class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i>
-                                    Volver a Cargar Etapas
-                                </a> -->
                                 <a href="{{ url_for('formulario.index') }}" class="btn btn-outline-primary">
                                     <i class="fas fa-home me-2"></i>
                                     Ir al Inicio

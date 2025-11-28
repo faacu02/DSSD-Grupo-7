@@ -9,6 +9,8 @@
 </head>
 <body class="bg-light">
     <div class="container mt-5">
+        		{% include "messages.html" %}
+
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
                 <div class="card shadow">
@@ -18,7 +20,6 @@
                         </h1>
                     </div>
                     <div class="card-body">
-                        <!-- Mostrar mensajes flash -->
                         {% with messages = get_flashed_messages(with_categories=true) %}
                           {% if messages %}
                             {% for category, message in messages %}
@@ -83,16 +84,31 @@
                                 </div>
                             </div>
 
+                            <!-- Cobertura solicitada con lista dinámica -->
                             <div class="mb-3">
-                                <label for="cobertura_solicitada" class="form-label">
-                                    <i class="fas fa-dollar-sign me-1"></i>Cobertura solicitada
+                                <label class="form-label">
+                                    <i class="fas fa-list me-1"></i>Detalle de cobertura solicitada
                                 </label>
-                                <input type="text" class="form-control" id="cobertura_solicitada" 
-                                       name="cobertura_solicitada" required placeholder="Ej: $50,000 o Materiales de construcción">
-                                <div class="invalid-feedback">
-                                    Por favor, ingresa la cobertura solicitada.
+
+                                <div id="cobertura-container">
+                                    <div class="input-group mb-2 cobertura-item">
+                                        <input type="text" class="form-control cobertura-input" placeholder="Ej: cemento, mano de obra, $50000" required>
+                                        <button type="button" class="btn btn-outline-danger remove-cobertura">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div class="form-text">Describe la cobertura que necesitas (puede ser un monto, materiales, etc.).</div>
+
+                                <button type="button" class="btn btn-outline-success btn-sm mb-2" id="add-cobertura">
+                                    <i class="fas fa-plus"></i> Agregar valor
+                                </button>
+
+                                <input type="hidden" name="cobertura_solicitada" id="cobertura_solicitada_json">
+
+                                <div class="form-text">
+                                    Agrega los valores que describen la cobertura.  
+                                    Se enviarán en una lista bajo la clave del tipo de cobertura seleccionado.
+                                </div>
                             </div>
 
                             <div class="mb-4">
@@ -122,12 +138,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Validación del formulario en el lado cliente
+        // Validación del formulario con Bootstrap
         (function() {
             'use strict';
             window.addEventListener('load', function() {
-                var forms = document.getElementsByClassName('needs-validation');
-                var validation = Array.prototype.filter.call(forms, function(form) {
+                const forms = document.getElementsByClassName('needs-validation');
+                Array.prototype.forEach.call(forms, function(form) {
                     form.addEventListener('submit', function(event) {
                         if (form.checkValidity() === false) {
                             event.preventDefault();
@@ -139,26 +155,69 @@
             }, false);
         })();
 
-        // Validación de fechas
+        // Validación fechas
         document.getElementById('fecha_inicio').addEventListener('change', function() {
-            const fechaInicio = new Date(this.value);
-            const fechaFinInput = document.getElementById('fecha_fin');
-            fechaFinInput.min = this.value;
-            
-            if (fechaFinInput.value && new Date(fechaFinInput.value) < fechaInicio) {
-                fechaFinInput.value = '';
+            const inicio = new Date(this.value);
+            const finInput = document.getElementById('fecha_fin');
+            finInput.min = this.value;
+            if (finInput.value && new Date(finInput.value) < inicio) {
+                finInput.value = '';
             }
         });
 
         document.getElementById('fecha_fin').addEventListener('change', function() {
-            const fechaFin = new Date(this.value);
-            const fechaInicioInput = document.getElementById('fecha_inicio');
-            fechaInicioInput.max = this.value;
-            
-            if (fechaInicioInput.value && new Date(fechaInicioInput.value) > fechaFin) {
+            const fin = new Date(this.value);
+            const inicioInput = document.getElementById('fecha_inicio');
+            inicioInput.max = this.value;
+            if (inicioInput.value && new Date(inicioInput.value) > fin) {
                 alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
                 this.value = '';
             }
+        });
+
+        // --- Mostrar/ocultar botón "Agregar valor" según tipo de cobertura ---
+        const tipoCoberturaSelect = document.getElementById("tipo_cobertura");
+        const addCoberturaBtn = document.getElementById("add-cobertura");
+
+        tipoCoberturaSelect.addEventListener("change", function() {
+            if (this.value === "economico") {
+                addCoberturaBtn.style.display = "none";
+            } else {
+                addCoberturaBtn.style.display = "inline-block";
+            }
+        });
+
+        // --- Cobertura dinámica ---
+        addCoberturaBtn.addEventListener("click", function() {
+            const container = document.getElementById("cobertura-container");
+            const div = document.createElement("div");
+            div.classList.add("input-group", "mb-2", "cobertura-item");
+            div.innerHTML = `
+                <input type="text" class="form-control cobertura-input" placeholder="Ej: ladrillos, cemento, $50000" required>
+                <button type="button" class="btn btn-outline-danger remove-cobertura">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        });
+
+        document.addEventListener("click", function(e) {
+            if (e.target.closest(".remove-cobertura")) {
+                e.target.closest(".cobertura-item").remove();
+            }
+        });
+
+        // --- Armar cobertura_solicitada: Dict[str, List[str]] ---
+        document.querySelector("form").addEventListener("submit", function() {
+            const tipo = document.getElementById("tipo_cobertura").value.trim();
+            const valores = Array.from(document.querySelectorAll(".cobertura-input"))
+                .map(i => i.value.trim())
+                .filter(v => v !== "");
+            
+            const estructura = {};
+            estructura[tipo] = valores;
+
+            document.getElementById("cobertura_solicitada_json").value = JSON.stringify(estructura);
         });
     </script>
 </body>

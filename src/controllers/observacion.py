@@ -1,0 +1,117 @@
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from classes.access import AccessAPI
+from activities.completar_actividad_siguiente import cargar_observacion as bonita_cargar_observacion
+from activities.completar_actividad_siguiente import obtener_observaciones_por_etapa
+from activities.completar_actividad_siguiente import seleccionar_observacion
+from activities.completar_actividad_siguiente import resolver_observacion
+import json
+from services.etapa_service import obtener_etapa_por_id
+from services.proyecto_servicce import obtener_proyecto_por_id, set_case_id_obs
+from utils.hasRol import roles_required
+observacion_bp = Blueprint('observacion', __name__)
+
+@observacion_bp.route('/cargar_observacion', methods=['GET', 'POST'])
+@roles_required('Interviniente')
+def cargar_observacion():
+    etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
+    case_id = request.args.get("case_id") or request.form.get("case_id")
+    etapa= obtener_etapa_por_id(etapa_id)
+    proyecto_id = request.args.get("proyecto_id") or request.form.get("proyecto_id")
+    if request.method == "POST":
+        observacion = request.form.get("observacion")
+
+        bonita_cargar_observacion(case_id, etapa.etapa_cloud_id, observacion)
+        set_case_id_obs(case_id, proyecto_id)
+
+        flash("Observación cargada correctamente", "success")
+        return redirect(url_for("formulario.index", case_id=case_id))
+        """
+        return redirect(url_for(
+                "formulario.ver_proyectos_completados",
+                case_id=case_id,
+                success="Observación cargada correctamente."
+            ))
+        """
+    return render_template("cargar_observacion.html",
+                           etapa_id=etapa_id,
+                           case_id=case_id,
+                           proyecto_id=proyecto_id)
+
+@observacion_bp.route('/ver_observaciones/<int:etapa_id>', methods=['GET'])
+@roles_required('Originante')
+def ver_observaciones_por_etapa(etapa_id):
+    etapa = obtener_etapa_por_id(etapa_id)
+    proyecto_id = request.args.get("proyecto_id") or request.form.get("proyecto_id")
+    proyecto = obtener_proyecto_por_id(proyecto_id)
+    case_id = proyecto.case_id_obs
+    try:
+        response = obtener_observaciones_por_etapa(case_id, etapa.etapa_cloud_id)
+        data = response.get_json()
+        observaciones = data.get("observaciones", [])
+        print("Observaciones obtenidas:", observaciones)
+    except Exception as e:
+        observaciones = []
+
+    cantidad_observaciones = 0
+    for obs in observaciones:
+        if not obs.get("resuelta", False):
+            cantidad_observaciones += 1
+
+    print("Cantidad de observaciones pendientes:", cantidad_observaciones)
+    return render_template(
+        "ver_observaciones.html",
+        etapa=etapa,
+        observaciones=observaciones,
+        case_id=case_id,
+        cantidad_observaciones=cantidad_observaciones,
+        proyecto_id=proyecto_id
+    )
+
+@observacion_bp.route('/detalle_observacion/<int:observacion_id>', methods=['GET'])
+@roles_required('Originante')
+def detalle_observacion(observacion_id):
+    case_id = request.args.get("case_id") or request.form.get("case_id")
+    etapa_id = request.args.get("etapa_id") or request.form.get("etapa_id")
+    etapa = obtener_etapa_por_id(etapa_id)
+    cantidad_observaciones = request.args.get("cantidad_observaciones") or request.form.get("cantidad_observaciones")
+    proyecto_id = request.args.get("proyecto_id") or request.form.get("proyecto_id")
+    print("Cantidad de observaciones pendientes:", cantidad_observaciones)
+    response = seleccionar_observacion(case_id, observacion_id)
+
+    data = response.get_json()
+    observacion = data.get("observacion", [])
+
+    return render_template(
+        "detalle_observacion.html",
+        etapa=etapa,
+        observacion=observacion,
+        case_id=case_id,
+        cantidad_observaciones=cantidad_observaciones,
+        proyecto_id=proyecto_id
+    )
+
+
+@observacion_bp.route('/resolver/<observacion_id>', methods=['POST'])
+@roles_required('Originante')
+def resolver(observacion_id):
+    case_id = request.form.get("case_id") or request.args.get("case_id")
+    etapa_id = request.form.get("etapa_id") or request.args.get("etapa_id")
+    etapa = obtener_etapa_por_id(etapa_id)
+    cantidad_observaciones = request.form.get("cantidad_observaciones") or request.args.get("cantidad_observaciones")
+    proyecto_id = request.form.get("proyecto_id") or request.args.get("proyecto_id")
+    print("Cantidad de observaciones pendientes:", cantidad_observaciones)
+    response = resolver_observacion(case_id, observacion_id)
+
+    data = response.get_json()
+    observacion = data.get("observacion", [])
+
+    proyecto_id = request.form.get("proyecto_id") or request.args.get("proyecto_id")
+    return render_template(
+        "detalle_observacion.html",
+        etapa=etapa,
+        observacion=observacion,
+        case_id=case_id,
+        cantidad_observaciones=cantidad_observaciones,
+        proyecto_id=proyecto_id,
+        success="Observación resuelta correctamente."
+    )

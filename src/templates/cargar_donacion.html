@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Donación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+    		{% include "messages.html" %}
+
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="card shadow">
+                <div class="card-header bg-success text-white text-center">
+                    <h1 class="card-title mb-0">
+                        <i class="fas fa-hand-holding-heart me-2"></i>Cargar Nueva Donación
+                    </h1>
+                </div>
+
+                <div class="card-body">
+
+                    <form method="POST" class="needs-validation" id="donacionForm">
+
+                        <input type="hidden" name="etapa_id" value="{{ etapa_id }}">
+                        <input type="hidden" name="case_id" value="{{ case_id }}">
+
+                        <!-- Donante -->
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-user me-1"></i>Donante</label>
+                            <input type="text" class="form-control" name="donante_nombre" required>
+                            <div class="invalid-feedback">Ingrese el nombre del donante.</div>
+                        </div>
+
+                        {% if tipo_cobertura == 'economico' %}
+                        <!-- Económico: solo monto -->
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-dollar-sign me-1"></i>Monto</label>
+                            <input type="number" step="0.01" min="0" class="form-control" name="monto" required>
+                            <div class="invalid-feedback">Ingrese un monto válido.</div>
+                        </div>
+
+                        {% else %}
+                        <!-- No económico: detalle + items -->
+                        <div class="mb-3">
+     <div class="mb-3 d-none">
+    <label class="form-label">
+        <i class="fas fa-info-circle me-1"></i>Detalle de la donación
+    </label>
+    <input type="text" id="detalle" class="form-control mb-3" placeholder="Descripción general (opcional)">
+</div>
+
+                            <label class="form-label mt-2"><i class="fas fa-list me-1"></i>Items</label>
+
+                            <div id="items-container">
+                                <div class="input-group mb-2 item-row">
+                                    <input type="text" class="form-control item-input" placeholder="Ej: cemento" required>
+                                    <button type="button" class="btn btn-outline-danger remove-item">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-outline-success btn-sm mb-3" id="add-item">
+                                <i class="fas fa-plus"></i> Agregar item
+                            </button>
+
+                            <input type="hidden" name="especificacion" id="especificacion_json">
+
+                            <div class="invalid-feedback d-block" id="item-error" style="display:none;">
+                                Debe agregar al menos 1 ítem válido.
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Donación
+                            </button>
+
+                            <a href="{{ url_for('donacion.ver_propuestas', etapa_id=etapa_id, case_id=case_id) }}"
+                               class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// ---- VALIDACIÓN GENERAL PARA AMBOS TIPOS ----
+const form = document.getElementById("donacionForm");
+
+form.addEventListener("submit", (e) => {
+    // activar validación HTML5 + bootstrap
+    form.classList.add("was-validated");
+
+    if (!form.checkValidity()) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+    }
+});
+
+{% if tipo_cobertura != 'economico' %}
+// ---- AGREGAR ITEM ----
+document.getElementById("add-item").addEventListener("click", () => {
+    const container = document.getElementById("items-container");
+
+    const row = document.createElement("div");
+    row.classList.add("input-group", "mb-2", "item-row");
+
+    row.innerHTML = `
+        <input type="text" class="form-control item-input" placeholder="Ej: ladrillos" required>
+        <button type="button" class="btn btn-outline-danger remove-item">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+
+    container.appendChild(row);
+});
+
+// ---- BORRAR ITEM ----
+document.addEventListener("click", (e) => {
+    if (e.target.closest(".remove-item")) {
+        e.target.closest(".item-row").remove();
+    }
+});
+
+// ---- VALIDACIÓN DE ITEMS ----
+form.addEventListener("submit", (e) => {
+    const inputs = Array.from(document.querySelectorAll(".item-input"));
+    const items = inputs.map(i => i.value.trim()).filter(i => i.length > 0);
+
+    if (items.length === 0) {
+        e.preventDefault();
+        document.getElementById("item-error").style.display = "block";
+        return;
+    }
+
+    document.getElementById("item-error").style.display = "none";
+
+    // Armar JSON
+    const detalle = document.getElementById("detalle").value.trim();
+    const data = {};
+
+    if (detalle !== "") data.detalle = detalle;
+    data.items = items;
+
+    document.getElementById("especificacion_json").value = JSON.stringify(data);
+});
+{% endif %}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,177 @@
+# controllers/etapa.py
+
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+import services.etapa_service as etapa_service
+import services.proyecto_servicce as proyecto_service
+
+# ⭐ servicios Bonita
+from activities.completar_actividad_siguiente import cargar_etapa as bonita_cargar_etapa
+from activities.completar_actividad_siguiente import completar_etapa as bonita_completar_etapa
+from utils.hasRol import roles_required
+etapa_bp = Blueprint('etapa', __name__)
+
+
+# ==================================================================
+#  CARGAR ETAPA  (YA SIN REQUESTS POST)
+# ==================================================================
+@etapa_bp.route('/completar_etapa', methods=['GET', 'POST'])
+@roles_required('Originante')
+def cargar_etapa():
+    if request.method == 'POST':
+
+        case_id = request.form.get('case_id')
+        proyecto_id = request.form.get('proyecto_id')
+        nombre_etapa = request.form.get('nombre_etapa')
+        fecha_inicio = request.form.get('fecha_inicio')
+        fecha_fin = request.form.get('fecha_fin')
+        tipo_cobertura = request.form.get('tipo_cobertura')
+        cobertura_solicitada = request.form.get('cobertura_solicitada')
+        ultima_etapa = request.form.get('ultima_etapa')
+
+        if not (proyecto_id and nombre_etapa and fecha_inicio and fecha_fin and tipo_cobertura):
+            return redirect(url_for(
+                'etapa.cargar_etapa',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                error="Faltan campos obligatorios."
+            ))
+
+        try:
+            # ⭐ Llamada DIRECTA a Bonita (sin requests.post)
+            bonita_result = bonita_cargar_etapa(
+                case_id,
+                nombre_etapa,
+                fecha_inicio,
+                fecha_fin,
+                tipo_cobertura,
+                cobertura_solicitada,
+                ultima_etapa,
+            )
+
+            etapa_cloud_id = bonita_result.get("etapa_cloud_id")
+
+            # ⭐ Crear etapa en base local
+            etapa_service.crear_etapa(
+                nombre_etapa,
+                fecha_inicio,
+                fecha_fin,
+                tipo_cobertura,
+                cobertura_solicitada,
+                int(proyecto_id),
+                etapa_cloud_id
+            )
+
+        except Exception as e:
+             return redirect(url_for(
+                'etapa.cargar_etapa',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                error=f"Error cargando etapa: {str(e)}"
+            ))
+
+        if ultima_etapa == 'true':
+            return redirect(url_for(
+                'formulario.confirmar_proyecto',
+                case_id=case_id,
+                proyecto_id=proyecto_id,
+                success="Etapa final registrada correctamente."
+            ))
+        return redirect(url_for(
+            'etapa.cargar_etapa',
+            case_id=case_id,
+            proyecto_id=proyecto_id,
+            success="Etapa creada correctamente."
+        ))
+
+    # GET
+    case_id = request.args.get('case_id')
+    proyecto_id = request.args.get('proyecto_id')
+
+    return render_template('cargar_etapa.html',
+                           case_id=case_id,
+                           proyecto_id=proyecto_id)
+
+
+
+# ==================================================================
+#  VER ETAPAS (ORIGINANTE / INTERVINIENTE)
+# ==================================================================
+@etapa_bp.route('/ver_etapas/<int:proyecto_id>', methods=['GET'])
+@roles_required('Originante', 'Interviniente')
+def ver_etapas_proyecto(proyecto_id):
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    case_id = request.args.get("case_id")
+    roles = session.get("bonita_roles", [])
+    proyecto = proyecto_service.obtener_proyecto_por_id(proyecto_id)
+    return render_template('ver_etapas.html',
+                           etapas=etapas,
+                           case_id=case_id,
+                           proyecto=proyecto,
+                           proyecto_id=proyecto_id,
+                           roles=roles)
+
+
+
+# ==================================================================
+#  DETALLE DE ETAPA
+# ==================================================================
+@etapa_bp.route('/detalle_etapa/<int:etapa_id>', methods=['GET'])
+@roles_required('Originante', 'Interviniente')
+def detalle_etapa(etapa_id):
+    case_id = request.args.get('case_id')
+    etapa_obj = etapa_service.obtener_etapa_por_id(etapa_id)
+    proyecto_id = request.args.get('proyecto_id')
+    proyecto= proyecto_service.obtener_proyecto_por_id(proyecto_id)
+    if not etapa_obj:
+        return redirect(url_for(
+            'formulario.ver_proyectos',
+            error="Etapa no encontrada."
+        ))
+    roles= session.get("bonita_roles", [])
+    return render_template(
+        'detalle_etapa.html',
+        etapa=etapa_obj,
+        case_id=case_id,
+        etapa_cloud_id=etapa_obj.etapa_cloud_id,
+        roles=roles,
+        proyecto_id=proyecto_id, 
+        proyecto=proyecto
+    )
+
+
+
+# ==================================================================
+#  COMPLETAR ETAPA LOCAL (MARCAR COMPLETADA)
+# ==================================================================
+
+
+
+@etapa_bp.route('/completar/<int:etapa_id>', methods=['GET'])
+@roles_required('Originante')
+def completar_etapa(etapa_id):
+    etapa = etapa_service.obtener_etapa_por_id(etapa_id)
+    case_id = request.args.get('case_id')
+    ultima_propuesta = request.args.get('ultima_propuesta')
+
+    if not etapa:
+        return redirect(url_for(
+            'etapa.ver_etapas_proyecto',
+            proyecto_id=etapa_id,
+            error="Etapa no encontrada."
+        ))
+    bonita_completar_etapa(case_id, etapa.etapa_cloud_id, ultima_propuesta) 
+    etapa_service.marcar_etapa_completa(etapa_id)
+    etapas= etapa_service.obtener_etapas_por_proyecto(etapa.proyecto_id)
+    proyecto = proyecto_service.obtener_proyecto_por_id(etapa.proyecto_id)
+    return render_template('ver_etapas.html', etapas=etapas, proyecto=proyecto,case_id=case_id)
+
+"""
+@etapa_bp.route('/originante/ver_etapas/<int:proyecto_id>', methods=['GET'])
+def ver_etapas_ong_originante(proyecto_id):
+    case_id = request.args.get('case_id')
+
+    etapas = etapa_service.obtener_etapas_por_proyecto(proyecto_id)
+    proyecto = proyecto_service.obtener_proyecto_por_id(proyecto_id)
+    return render_template('ver_etapas_ong_originante.html', etapas=etapas, proyecto=proyecto, case_id=case_id)
+
+"""
